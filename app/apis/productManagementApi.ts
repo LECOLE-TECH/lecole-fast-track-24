@@ -1,12 +1,6 @@
-const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/product`;
+import type { Product } from "~/types/product";
 
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-}
+const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/product`;
 
 interface PaginationResponse<T> {
   code: number;
@@ -48,7 +42,7 @@ export const getProductById = async (id: number): Promise<Product> => {
 };
 
 export const createProduct = async (
-  product: Omit<Product, "id">
+  product: Omit<Product, "id" | "createdAt" | "updatedAt">
 ): Promise<Product> => {
   try {
     const response = await fetch(baseUrl, {
@@ -71,7 +65,7 @@ export const createProduct = async (
 
 export const updateProduct = async (
   id: number,
-  product: Partial<Omit<Product, "id">>
+  product: Partial<Omit<Product, "id" | "createdAt" | "updatedAt">>
 ): Promise<Product> => {
   try {
     const response = await fetch(`${baseUrl}/${id}`, {
