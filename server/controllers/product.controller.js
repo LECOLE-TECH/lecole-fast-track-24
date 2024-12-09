@@ -1,11 +1,12 @@
+import { standardResponse } from "../config/response.config.js";
 import { getAllProducts, getProductById } from "../services/product.service.js";
 
 export const getAll = async (req, res) => {
   try {
     const products = await getAllProducts();
-    res.json(products);
+    standardResponse(res, 200, products, `Get all products successfully`);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch products" });
+    standardResponse(res, 500, null, "Fail to fetch products");
   }
 };
 
@@ -14,10 +15,10 @@ export const getById = async (req, res) => {
   try {
     const product = await getProductById(id);
     if (!product) {
-      return res.status(404).json({ error: "Product not found" });
+      return standardResponse(res, 404, null, `No product with id: ${id} found`);
     }
-    res.json(product);
+    standardResponse(res, 200, product, `Get product with id: ${id} successfully`);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch product" });
+    standardResponse(res, 500, null, "Fail to fetch product");
   }
 };
