@@ -2,9 +2,26 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getAllProducts = async () => {
+export const getPaginationProducts = async (page, take) => {
   try {
-    return await prisma.product.findMany();
+    const skip = (page - 1) * take;
+
+    const products = await prisma.product.findMany({
+      skip: skip,
+      take: take,
+    });
+
+    const totalRecord = await prisma.product.count();
+
+    const totalPage = Math.ceil(totalRecord / take);
+
+    return {
+      products,
+      currentPage: page,
+      totalPage,
+      recordPerPage: products.length,
+      totalRecord,
+    };
   } catch (error) {
     throw new Error("Failed to fetch products from database.");
   }

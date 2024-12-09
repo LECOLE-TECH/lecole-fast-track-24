@@ -1,10 +1,26 @@
-import { standardResponse } from "../config/response.config.js";
-import { getAllProducts, getProductById } from "../services/product.service.js";
+import {
+  paginationResponse,
+  standardResponse,
+} from "../config/response.config.js";
+import {
+  getPaginationProducts,
+  getProductById,
+} from "../services/product.service.js";
 
-export const getAll = async (req, res) => {
+export const getPagination = async (req, res) => {
+  const { page = 1, take = 10 } = req.query;
   try {
-    const products = await getAllProducts();
-    standardResponse(res, 200, products, `Get all products successfully`);
+    const products = await getPaginationProducts(Number(page), Number(take));
+    paginationResponse(
+      res,
+      200,
+      products.products,
+      `Get all products successfully`,
+      products.currentPage,
+      products.totalPage,
+      products.recordPerPage,
+      products.totalRecord
+    );
   } catch (error) {
     standardResponse(res, 500, null, "Fail to fetch products");
   }
@@ -15,9 +31,19 @@ export const getById = async (req, res) => {
   try {
     const product = await getProductById(id);
     if (!product) {
-      return standardResponse(res, 404, null, `No product with id: ${id} found`);
+      return standardResponse(
+        res,
+        404,
+        null,
+        `No product with id: ${id} found`
+      );
     }
-    standardResponse(res, 200, product, `Get product with id: ${id} successfully`);
+    standardResponse(
+      res,
+      200,
+      product,
+      `Get product with id: ${id} successfully`
+    );
   } catch (error) {
     standardResponse(res, 500, null, "Fail to fetch product");
   }
