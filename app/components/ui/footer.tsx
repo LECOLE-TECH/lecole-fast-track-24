@@ -69,7 +69,7 @@ export default function Footer() {
                     d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253'
                   />
                 </svg>
-                Special Orchid
+                Best Sellers
               </Link>
               <Link to='#' className={linkStyle}>
                 <svg
@@ -86,7 +86,7 @@ export default function Footer() {
                     d='M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z'
                   />
                 </svg>
-                Orchid News
+                Product News
               </Link>
               <Link to='#' className={linkStyle}>
                 <svg
@@ -189,7 +189,8 @@ export default function Footer() {
         <div className='my-8 border-t border-gray-700'></div>
         <div className='flex flex-col sm:flex-row justify-between items-center'>
           <p className='text-sm text-gray-400 mb-4 sm:mb-0'>
-            © {new Date().getFullYear()} Orchid Haven. All rights reserved.
+            © {new Date().getFullYear()} Product Management. All rights
+            reserved.
           </p>
           <div>
             <Link to='#' className={`${linkStyle} mr-4 inline-block`}>
