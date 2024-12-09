@@ -6,6 +6,7 @@ import {
   createProduct,
   getPaginationProducts,
   getProductById,
+  updateProduct,
 } from "../services/product.service.js";
 
 export const getPagination = async (req, res) => {
@@ -72,5 +73,24 @@ export const create = async (req, res) => {
     standardResponse(res, 201, product, "Create product successfully");
   } catch (error) {
     standardResponse(res, 500, null, "Fail to create product due to server");
+  }
+};
+
+export const udpate = async (req, res) => {
+  const id = req.params.id;
+  const updatedProduct = req.body;
+  try {
+    const product = await updateProduct(updatedProduct, id);
+    if (!product) {
+      return standardResponse(
+        res,
+        400,
+        null,
+        "Fail to update product due to bad request"
+      );
+    }
+    standardResponse(res, 201, product, "Update product successfully");
+  } catch (error) {
+    standardResponse(res, 500, null, "Fail to update product due to server");
   }
 };

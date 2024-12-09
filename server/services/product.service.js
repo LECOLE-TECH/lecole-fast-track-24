@@ -55,3 +55,17 @@ export const createProduct = async (newProduct) => {
     throw new Error("Failed to add product");
   }
 };
+
+export const updateProduct = async (updatedProduct, id) => {
+  try {
+    return await prisma.product.update({
+      where: {
+        id: Number(id),
+      },
+      data: updatedProduct,
+    });
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to update product");
+  }
+};
