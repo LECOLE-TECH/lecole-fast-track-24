@@ -1,93 +1,54 @@
-# Welcome to LECOLE Fast Track 24
+# Product Management CRUD App
 
-## Features
+A simple and elegant CRUD (Create, Read, Update, Delete) application for managing products. This project showcases clean code practices, reusable components, and optimized performance techniques.
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
 
-## Getting Started
+## ✨ Features
 
-### Installation
-
-Install the dependencies:
-
-```bash
-yarn install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-yarn dev
-```
-
-Start the server:
-
-```bash
-yarn dev:server
-```
-
-Your front-end application will be available at `http://localhost:5173`.
-Your back-end application will be available at `http://localhost:3000`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-yarn build
-```
-
-## Deployment
-
-### Docker Deployment
-
-This template includes a Dockerfile optimized for yarn:
-
-- `Dockerfile` - for yarn
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `yarn build`
-
-```
-├── package.json
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+- **CRUD Functionalities**: Add, view, update, and delete products seamlessly.
+- **Reusable Alert System**: Context-based popup notifications to give users feedback on operations.
+- **Pagination**: Paginated product list for better navigation and data organization.
+- **Performance Optimization**: Efficient state management using `useMemo` and `useCallback` to avoid unnecessary re-renders.
 
 ---
 
-Built with ❤️ using React Router.
+## 🛠️ Technologies Used
+
+- **Frontend**: React (with hooks like `useState`, `useEffect`, `useCallback`, and `useMemo`)
+- **Styling**: TailwindCSS for rapid and responsive UI design.
+- **Backend API**: Integration with API functions for CRUD operations (`createProduct`, `fetchProducts`, etc.).
+- **Popup Notifications**: TailwindCSS-based alert system using `useContext`.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/) package manager
+
+### Installation
+
+
+1. **Install Dependencies**:
+    ```
+    npm install
+    ```
+
+2. **Start the Frontend**:
+    ```
+    npm run dev
+    ```
+
+3. **Start the Server**:
+    ```
+    npm run dev:server
+    ```
+
+4. Open [http://localhost:5173/](http://localhost:5173/) or whatever the port your front end decide to run on
+
+## Challenges
+
+    One of the most challenging aspects of this project was implementing frontend pagination. Determining how many pages should be visible around the current page and deciding when to include ellipses required careful thought and balancing usability with simplicity. I spent more time than anticipated fine-tuning the logic to ensure a seamless and intuitive user experience.
