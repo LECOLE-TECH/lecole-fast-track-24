@@ -9,7 +9,8 @@ export function Welcome() {
             </h2>
             <div className="space-y-4 text-gray-700 dark:text-gray-200">
               <p className="leading-6">
-                Welcome to the first track of our challenge! In this round, you'll be working with:
+                Welcome to the first track of our challenge! In this round,
+                you'll be working with:
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>A pre-built backend API for products</li>
@@ -41,7 +42,9 @@ export function Welcome() {
           </div>
 
           <nav className="rounded-3xl border border-gray-200 p-6 dark:border-gray-700 space-y-4">
-            <p className="leading-6 text-gray-700 dark:text-gray-200 text-center">Ready to begin?</p>
+            <p className="leading-6 text-gray-700 dark:text-gray-200 text-center">
+              Ready to begin?
+            </p>
             <ul>
               {resources.map(({ href, text, icon }) => (
                 <li key={href}>
@@ -61,12 +64,12 @@ export function Welcome() {
         </div>
       </div>
     </main>
-  );
+  )
 }
 
 const resources = [
   {
-    href: "/track-one",
+    href: "/track-one?tab=products",
     text: "Track One",
     icon: (
       <svg
@@ -85,4 +88,4 @@ const resources = [
       </svg>
     )
   }
-];
+]

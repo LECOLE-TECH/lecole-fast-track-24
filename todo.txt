@@ -1,0 +1,10 @@
+Day 1:
+  - Reading source code and research library before code
+  - Set up axios an React query call API
+  - Set up base server to prepare for next track to easy
+  - Handle CURD product:
+    Get list product, pagination product, search product: Done both API and UI/UX
+    Delete product: Done API and already set up UI/UX but not ready call API
+    Update product: Done API and not have UI
+    Create product: Done API and not have UI
+  - Handle lazy loading image, user double click, debound user fast search, medium reponsive, spliting loading
