@@ -1,8 +1,16 @@
+// server/index.js
 import express from "express";
 import sqlite3 from "sqlite3";
+import cors from "cors";
 
 const app = express();
 const port = 3000;
+
+app.use(cors({
+  origin: 'http://localhost:5173' // Allow requests from this origin
+}));
+
+app.use(express.json()); // Middleware to parse JSON request bodies
 
 const db = new sqlite3.Database("./database/products.db", (err) => {
   if (err) {
@@ -45,8 +53,6 @@ db.serialize(() => {
   });
 });
 
-app.use(express.json());
-
 app.get("/api/product", (req, res) => {
   db.all("SELECT * FROM products", [], (err, rows) => {
     if (err) {
@@ -57,6 +63,64 @@ app.get("/api/product", (req, res) => {
   });
 });
 
+// CREATE
+app.post("/api/product", (req, res) => {
+  const { name, description, price, stock } = req.body;
+  if (!name || !price || !stock) {
+    res.status(400).json({ error: "Missing required fields" });
+    return;
+  }
+  db.run("INSERT INTO products (name, description, price, stock) VALUES (?, ?, ?, ?)", [name, description, price, stock], function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ id: this.lastID });
+      console.log("Product added with ID:", this.lastID);
+  });
+});
+// Delete
+app.delete("/api/product/:id", (req, res) => {
+  db.run("DELETE FROM products WHERE id = ?", req.params.id, function(err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ changes: this.changes });
+      console.log("Product deleted with ID:", req.params.id);
+  });
+});
+// Read
+app.get("/api/product/:id", (req, res) => {
+    db.get("SELECT * FROM products WHERE id = ?", req.params.id, (err, row) => {
+        if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+        }
+        if (!row) {
+        res.status(404).json({ error: "Product not found" });
+        return;
+        }
+        res.json(row);
+        console.log("Product found with ID:", req.params.id);
+    });
+});
+// Update
+app.put("/api/product/:id", (req, res) => {
+    const { name, description, price, stock } = req.body;
+    if (!name || !price || !stock) {
+        res.status(400).json({ error: "Missing required fields" });
+        return;
+    }
+    db.run("UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?", [name, description, price, stock, req.params.id], function(err) {
+        if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+        }
+        console.log("Product updated with ID:", req.params.id);
+        res.json({ changes: this.changes });
+    });
+});
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
