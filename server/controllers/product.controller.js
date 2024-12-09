@@ -3,6 +3,7 @@ import {
   standardResponse,
 } from "../config/response.config.js";
 import {
+  createProduct,
   getPaginationProducts,
   getProductById,
 } from "../services/product.service.js";
@@ -46,5 +47,30 @@ export const getById = async (req, res) => {
     );
   } catch (error) {
     standardResponse(res, 500, null, "Fail to fetch product");
+  }
+};
+
+export const create = async (req, res) => {
+  const { image, name, description, price, stock } = req.body;
+  const newProduct = {
+    image,
+    name,
+    description,
+    price,
+    stock,
+  };
+  try {
+    const product = await createProduct(newProduct);
+    if (!product) {
+      return standardResponse(
+        res,
+        400,
+        null,
+        "Fail to create product due to bad request"
+      );
+    }
+    standardResponse(res, 201, product, "Create product successfully");
+  } catch (error) {
+    standardResponse(res, 500, null, "Fail to create product due to server");
   }
 };

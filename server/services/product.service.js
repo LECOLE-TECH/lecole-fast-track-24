@@ -38,3 +38,20 @@ export const getProductById = async (inputId) => {
     throw new Error(`No product with ${inputId} found`);
   }
 };
+
+export const createProduct = async (newProduct) => {
+  try {
+    return await prisma.product.create({
+      data: {
+        image: newProduct.image,
+        name: newProduct.name,
+        description: newProduct.description,
+        price: parseFloat(newProduct.price),
+        stock: Number(newProduct.stock),
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to add product");
+  }
+};
