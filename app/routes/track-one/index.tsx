@@ -1,4 +1,11 @@
-import { useState, useCallback, lazy, Suspense, type ChangeEvent } from "react";
+import {
+	useState,
+	useCallback,
+	lazy,
+	Suspense,
+	type ChangeEvent,
+	useEffect,
+} from "react";
 import { Button } from "~/components/ui/button";
 import { useProductStore } from "~/store/productStore";
 import { useFetchProducts } from "~/hooks/useFetchProducts";
@@ -22,8 +29,13 @@ export default function TrackOne() {
 
 	// New States for Search and Sort
 	const [searchTerm, setSearchTerm] = useState<string>("");
-	const [sortKey, setSortKey] = useState<"name" | "price">("name");
+	const [sortKey, setSortKey] = useState<"name" | "price" | "id">("name");
 	const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+	// Toggle between Pagination and Infinite Scrolling
+	const [isInfiniteScroll, setIsInfiniteScroll] = useState<boolean>(false);
+
+	const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
 	// Memoize handlers with useCallback
 	const handleCreate = useCallback(() => {
@@ -100,26 +112,45 @@ export default function TrackOne() {
 	};
 
 	const handleSortKeyChange = (e: ChangeEvent<HTMLSelectElement>) => {
-		setSortKey(e.target.value as "name" | "price");
+		setSortKey(e.target.value as "name" | "price" | "id");
 	};
 
 	const handleSortOrderChange = (e: ChangeEvent<HTMLSelectElement>) => {
 		setSortOrder(e.target.value as "asc" | "desc");
 	};
 
+	// Handler for Toggle
+	const handleToggleChange = () => {
+		setIsInfiniteScroll((prev) => !prev);
+		setCurrentPage(1); // Reset to first page when toggling
+	};
+
+	const loadMoreProducts = useCallback(async () => {
+		if (currentPage >= totalPages) return;
+		setIsLoadingMore(true);
+		try {
+			// Increment page number to trigger useEffect in useFetchProducts
+			setCurrentPage((prev) => prev + 1);
+		} catch (err: any) {
+			alert(err.message || "An error occurred while loading more products");
+		} finally {
+			setIsLoadingMore(false);
+		}
+	}, [currentPage, totalPages]);
+
 	return (
 		<div className="p-6 max-w-7xl mx-auto">
 			<h1 className="text-3xl font-semibold mb-6 text-center text-gray-800 dark:text-gray-100">
 				Product Management
 			</h1>
-			<div className="flex justify-between mb-4">
+			<div className="flex flex-col md:flex-row justify-between mb-4 space-y-4 md:space-y-0">
 				<Button
 					onClick={handleCreate}
 					className="bg-indigo-600 hover:bg-indigo-700 text-white">
 					Add New Product
 				</Button>
 				{/* Search and Sort Controls */}
-				<div className="flex space-x-4">
+				<div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
 					<input
 						type="text"
 						placeholder="Search by name"
@@ -142,6 +173,24 @@ export default function TrackOne() {
 						<option value="asc">Ascending</option>
 						<option value="desc">Descending</option>
 					</select>
+					{/* Toggle for Infinite Scroll and Pagination */}
+					<div className="flex items-center">
+						<label
+							htmlFor="toggle"
+							className="mr-2 text-gray-700 dark:text-gray-200">
+							Infinite Scroll
+						</label>
+						<input
+							type="checkbox"
+							id="toggle"
+							checked={isInfiniteScroll}
+							onChange={handleToggleChange}
+							className="toggle-checkbox hidden"
+						/>
+						<label
+							htmlFor="toggle"
+							className="toggle-label block w-10 h-6 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer relative"></label>
+					</div>
 				</div>
 			</div>
 			{loading && (
@@ -154,29 +203,39 @@ export default function TrackOne() {
 						<p className="text-center text-gray-600">Loading product list...</p>
 					}>
 					<ProductList
-						products={paginatedProducts}
+						products={isInfiniteScroll ? sortedProducts : paginatedProducts}
 						onEdit={handleEdit}
 						onDelete={handleDelete}
+						isInfiniteScroll={isInfiniteScroll}
+						loadMore={loadMoreProducts}
 					/>
-					{/* Pagination Controls */}
-					<div className="flex justify-center items-center mt-4 space-x-4">
-						<Button
-							onClick={handlePrevPage}
-							disabled={currentPage === 1}
-							className="bg-gray-300 hover:bg-gray-400 text-gray-800 disabled:bg-gray-200">
-							Previous
-						</Button>
-						<span className="text-gray-700 dark:text-gray-300">
-							Page {currentPage} of{" "}
-							{Math.max(Math.ceil(filteredProducts.length / itemsPerPage), 1)}
-						</span>
-						<Button
-							onClick={handleNextPage}
-							disabled={currentPage === totalPages || totalPages === 0}
-							className="bg-gray-300 hover:bg-gray-400 text-gray-800 disabled:bg-gray-200">
-							Next
-						</Button>
-					</div>
+					{/* Loading Indicator for Infinite Scroll */}
+					{isInfiniteScroll && isLoadingMore && (
+						<p className="text-center text-gray-600 mt-4">
+							Loading more products...
+						</p>
+					)}
+					{/* Pagination Controls (only visible when not using infinite scroll) */}
+					{!isInfiniteScroll && (
+						<div className="flex justify-center items-center mt-4 space-x-4">
+							<Button
+								onClick={handlePrevPage}
+								disabled={currentPage === 1}
+								className="bg-gray-300 hover:bg-gray-400 text-gray-800 disabled:bg-gray-200">
+								Previous
+							</Button>
+							<span className="text-gray-700 dark:text-gray-300">
+								Page {currentPage} of{" "}
+								{Math.max(Math.ceil(filteredProducts.length / itemsPerPage), 1)}
+							</span>
+							<Button
+								onClick={handleNextPage}
+								disabled={currentPage === totalPages || totalPages === 0}
+								className="bg-gray-300 hover:bg-gray-400 text-gray-800 disabled:bg-gray-200">
+								Next
+							</Button>
+						</div>
+					)}
 				</Suspense>
 			)}
 			{isFormOpen && (
