@@ -1,6 +1,7 @@
 import express from "express";
 import sqlite3 from "sqlite3";
 import fs from "fs";
+import cors from "cors"; 
 import { body, validationResult } from "express-validator";
 
 const app = express();
@@ -58,34 +59,47 @@ db.serialize(() => {
   });
 });
 
+app.use(cors({
+  origin: "http://localhost:5173", // Allow all origins. Replace "*" with a specific origin if needed.
+  methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Specify allowed headers
+}));
+
+
 app.use(express.json());
 
 // Read All Products
 app.get("/api/products", (req, res) => {
-  db.all("SELECT * FROM products", [], (err, rows) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  db.all("SELECT * FROM products LIMIT ? OFFSET ?", [limit, offset], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(rows);
+
+    db.get("SELECT COUNT(*) AS count FROM products", (countErr, countRow) => {
+      if (countErr) {
+        res.status(500).json({ error: countErr.message });
+        return;
+      }
+
+      const totalItems = countRow.count;
+      const totalPages = Math.ceil(totalItems / limit);
+
+      res.json({
+        data: rows,
+        pagination: {
+          totalPages,
+          itemsPerPage: limit,
+        },
+      });
+    });
   });
 });
 
-// Read Single Product by ID
-app.get("/api/products/:id", (req, res) => {
-  const { id } = req.params;
-  db.get("SELECT * FROM products WHERE id = ?", [id], (err, row) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    if (!row) {
-      res.status(404).json({ error: "Product not found" });
-      return;
-    }
-    res.json(row);
-  });
-});
 
 //  Create a New Product
 app.post("/api/products",productFormValidation, (req, res) => {
