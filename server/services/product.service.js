@@ -51,7 +51,6 @@ export const createProduct = async (newProduct) => {
       },
     });
   } catch (error) {
-    console.log(error);
     throw new Error("Failed to add product");
   }
 };
@@ -65,7 +64,18 @@ export const updateProduct = async (updatedProduct, id) => {
       data: updatedProduct,
     });
   } catch (error) {
-    console.log(error);
     throw new Error("Failed to update product");
+  }
+};
+
+export const deleteProduct = async (id) => {
+  try {
+    return await prisma.product.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+  } catch (error) {
+    throw new Error("Failed to delete product due to not found");
   }
 };

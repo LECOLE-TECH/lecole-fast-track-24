@@ -4,6 +4,7 @@ import {
 } from "../config/response.config.js";
 import {
   createProduct,
+  deleteProduct,
   getPaginationProducts,
   getProductById,
   updateProduct,
@@ -92,5 +93,18 @@ export const udpate = async (req, res) => {
     standardResponse(res, 201, product, "Update product successfully");
   } catch (error) {
     standardResponse(res, 500, null, "Fail to update product due to server");
+  }
+};
+
+export const remove = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const isDeleted = await deleteProduct(id);
+    if (!isDeleted) {
+      return standardResponse(res, 400, null, "Fail to delete product");
+    }
+    standardResponse(res, 201, isDeleted, "Delete product successfully");
+  } catch (error) {
+    standardResponse(res, 404, null, "Fail to delete product due to not found");
   }
 };
