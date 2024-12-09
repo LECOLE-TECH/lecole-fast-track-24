@@ -32,6 +32,8 @@ DATABASE_URL="file:./database/products.db"
 
 #### 4. Seed the Database
 ```bash
+yarn prisma migrate dev --name init
+
 node prisma/seed.js
 ```
 
