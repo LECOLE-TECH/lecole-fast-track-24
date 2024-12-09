@@ -39,7 +39,7 @@ export default function Footer() {
               Quick Links
             </h6>
             <div className='flex flex-col'>
-              <Link to='/fer-lab1/' className={linkStyle}>
+              <Link to='#home' className={linkStyle}>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   className='h-5 w-5 inline mr-2'
@@ -56,7 +56,7 @@ export default function Footer() {
                 </svg>
                 Home
               </Link>
-              <Link to='/fer-lab1/natural' className={linkStyle}>
+              <Link to='#best-seller' className={linkStyle}>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   className='h-5 w-5 inline mr-2'
@@ -73,7 +73,7 @@ export default function Footer() {
                 </svg>
                 Best Seller
               </Link>
-              <Link to='/fer-lab1/news' className={linkStyle}>
+              <Link to='#news' className={linkStyle}>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   className='h-5 w-5 inline mr-2'
@@ -90,7 +90,7 @@ export default function Footer() {
                 </svg>
                 Products News
               </Link>
-              <Link to='/fer-lab1/contact' className={linkStyle}>
+              <Link to='#contact' className={linkStyle}>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   className='h-5 w-5 inline mr-2'
@@ -195,10 +195,16 @@ export default function Footer() {
             reserved.
           </p>
           <div>
-            <Link to='#' className={`${linkStyle} mr-4 inline-block`}>
+            <Link
+              to='#privacy-policy'
+              className={`${linkStyle} mr-4 inline-block`}
+            >
               Privacy Policy
             </Link>
-            <Link to='#' className={`${linkStyle} inline-block`}>
+            <Link
+              to='#terms-of-service'
+              className={`${linkStyle} inline-block`}
+            >
               Terms of Service
             </Link>
           </div>

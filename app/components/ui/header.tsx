@@ -71,7 +71,7 @@ export default function Header() {
               />
             </svg>
             <Link
-              to={"#"}
+              to={"#home"}
               onClick={() => scrollToSection("home")}
               className='text-2xl font-bold text-gray-800 hover:text-green-500 transition-colors duration-300'
             >
