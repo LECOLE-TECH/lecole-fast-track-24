@@ -114,12 +114,10 @@ export default function Dashboard() {
   }, [selectedProduct]);
 
   return (
-    <div className='min-h-screen bg-gray-100 p-8'>
+    <div className='min-h-screen bg-gray-100 p-8 pt-24'>
       <div className='max-w-7xl mx-auto'>
         <div className='flex justify-between items-center mb-6'>
-          <h1 className='text-3xl font-bold text-gray-900'>
-            Product Management
-          </h1>
+          <h1 className='text-3xl font-bold text-gray-900'>Products</h1>
           <button
             onClick={handleAddProduct}
             className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
