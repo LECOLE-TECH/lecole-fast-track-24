@@ -5,8 +5,6 @@ import funcProductRoute from "./routes/product.route.js";
 const app = express();
 const port = 3000;
 
-const prisma = new PrismaClient();
-
 app.use(express.json());
 
 funcProductRoute(app);
