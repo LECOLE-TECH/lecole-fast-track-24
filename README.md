@@ -2,7 +2,6 @@
 
 A simple and elegant CRUD (Create, Read, Update, Delete) application for managing products. This project showcases clean code practices, reusable components, and optimized performance techniques.
 
----
 
 ## ✨ Features
 
