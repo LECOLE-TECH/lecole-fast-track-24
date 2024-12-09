@@ -18,12 +18,6 @@ export default defineConfig({
       "~": path.resolve(__dirname, "./app"),
     },
   },
-  optimizeDeps: {
-    include: ["@mui/material/Tooltip", "@mui/material/Popover"],
-    esbuildOptions: {
-      target: "es2020",
-    },
-  },
   build: {
     target: "es2020",
   },
