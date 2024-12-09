@@ -43,7 +43,6 @@ export const createProduct = async (newProduct) => {
   try {
     return await prisma.product.create({
       data: {
-        image: newProduct.image,
         name: newProduct.name,
         description: newProduct.description,
         price: parseFloat(newProduct.price),

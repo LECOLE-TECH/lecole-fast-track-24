@@ -53,9 +53,8 @@ export const getById = async (req, res) => {
 };
 
 export const create = async (req, res) => {
-  const { image, name, description, price, stock } = req.body;
+  const { name, description, price, stock } = req.body;
   const newProduct = {
-    image,
     name,
     description,
     price,
