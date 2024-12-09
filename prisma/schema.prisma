@@ -14,9 +14,12 @@ datasource db {
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
+  image       String?
   name        String
   description String?
   price       Float
   stock       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
