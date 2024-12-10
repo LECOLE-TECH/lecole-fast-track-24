@@ -91,3 +91,16 @@ This template comes with [Tailwind CSS](https://tailwindcss.com/) already config
 ---
 
 Built with ❤️ using React Router.
+
+[//]: # (le van quy)
+Get Data from API
+![img.png](img.png)
+Create New Data
+![img_2.png](img_2.png)
+![img_3.png](img_3.png)
+Update Data
+![img_4.png](img_4.png) // cap nhat id = 1
+![img_5.png](img_5.png)
+
+Delete Data
+![img_6.png](img_6.png)
