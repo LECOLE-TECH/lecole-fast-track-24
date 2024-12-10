@@ -8,8 +8,8 @@ import {
 } from "../controllers/products.controller.js"
 import { validateData } from "../middlewares/validate.js"
 import {
-  insertProductsSchema,
-  updateProductsSchema
+  insertProductSchema,
+  updateProductSchema
 } from "../schema/product.schema.js"
 
 export const productRoute = express.Router()
@@ -18,13 +18,13 @@ productRoute.get("/", catchErrorHandler(getListProducts))
 
 productRoute.post(
   "/",
-  validateData(insertProductsSchema),
+  validateData(insertProductSchema),
   catchErrorHandler(createProduct)
 )
 
 productRoute.put(
-  "/",
-  validateData(updateProductsSchema),
+  "/:id",
+  validateData(updateProductSchema),
   catchErrorHandler(updateProduct)
 )
 

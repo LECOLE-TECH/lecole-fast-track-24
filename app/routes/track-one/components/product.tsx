@@ -7,28 +7,27 @@ import { useGetProducts } from "~/hooks/products/useGetProducts.hook"
 import useDebounce from "~/hooks/useDebounce"
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetDescription,
-  SheetFooter,
   SheetHeader,
-  SheetTitle,
-  SheetTrigger
+  SheetTitle
 } from "~/components/ui/sheet"
-import { Button } from "~/components/ui/button"
-import { Input } from "~/components/ui/input"
 import { CreateProductForm } from "./create-product-form"
-import { UpdateProductForm } from "./update-product-form"
+import { EditProductForm } from "./edit-product-form"
 import { useInsertProduct } from "~/hooks/products/useCreateProduct.hook"
 import { InsertProduct } from "~/utils/schema"
+import { toast } from "react-toastify"
+import { Product } from "~/types/products.types"
+import { useEditProduct } from "~/hooks/products/useEditProduct.hook"
 
 const Products = () => {
   const [searchParams] = useSearchParams()
   const params = Object.fromEntries(searchParams.entries())
   const { mutate: deleteProduct } = useDeleteProduct()
   const { mutate: insertProduct } = useInsertProduct()
+  const { mutate: editProduct } = useEditProduct()
   const [page, setPage] = useState(params.page ? parseInt(params.page) : 1)
   const [search, setSearch] = useState(params.search || "")
+  const [productEdit, setProductEdit] = useState<Product | null>(null)
   const debouncedInputValue = useDebounce(search, 300)
   const [actionSheet, setActionSheet] = useState(0) // 0: default 1: add, 2: edit
   const navigate = useNavigate()
@@ -38,10 +37,16 @@ const Products = () => {
     deleteProduct(ids)
   }
 
-  const handleEdit = (data: Partial<InsertProduct>) => {}
+  const handleEdit = (data: Product) => {
+    editProduct(data)
+    setActionSheet(0)
+    toast.success("Product has been updated successfully")
+  }
 
   const handleInsert = (data: InsertProduct) => {
     insertProduct(data)
+    setActionSheet(0)
+    toast.success("Product has been added successfully")
   }
 
   const handleSearch = (searchValue: string) => {
@@ -82,13 +87,15 @@ const Products = () => {
           "brand"
         ]}
         textConfirm="Are you sure you want to delete this product?"
+        title="List Product"
         totalPages={data?.data.totalPages || 1}
         page={page}
         dataRow={data?.data.items || []}
-        title="List Product"
         searchValue={search}
+        // props functions
         onActionSheet={setActionSheet}
         onDelete={handleDelete}
+        onUpdate={(data) => setProductEdit(data as Product)}
         onChangePage={handleChangePage}
         onSearch={handleSearch}
       />
@@ -105,7 +112,9 @@ const Products = () => {
               {actionSheet === 1 && (
                 <CreateProductForm onInsert={handleInsert} />
               )}
-              {actionSheet === 2 && <UpdateProductForm />}
+              {actionSheet === 2 && (
+                <EditProductForm onEdit={handleEdit} product={productEdit!} />
+              )}
             </div>
           </SheetContent>
         </Sheet>

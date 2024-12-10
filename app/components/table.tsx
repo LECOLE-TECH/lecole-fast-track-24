@@ -24,6 +24,7 @@ interface props<T> {
   textConfirm: string
   onActionSheet: (value: number) => void
   onDelete: (ids: number[]) => void
+  onUpdate: (data: T | null) => void
   onSearch: (data: string) => void
   onChangePage: (page: number) => void
 }
@@ -39,6 +40,7 @@ const Table = <T,>({
   onActionSheet,
   onSearch,
   onDelete,
+  onUpdate,
   onChangePage
 }: props<T>) => {
   const [ids, setIds] = useState<number[]>([])
@@ -68,6 +70,21 @@ const Table = <T,>({
       onDelete(ids)
       setShowModal(false)
     }
+    setIds([])
+  }
+
+  const handleUpdate = (data: T) => {
+    if (ids.length === 0) {
+      return toast.error("Please select item to edit")
+    }
+
+    if (ids.length > 1) {
+      return toast.error("Please select only one item to edit")
+    }
+
+    onUpdate(data as T)
+    setIds([])
+    onActionSheet(2)
   }
 
   return (
@@ -108,7 +125,13 @@ const Table = <T,>({
                     <span>Remove</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => onActionSheet(2)}
+                    onClick={() => {
+                      handleUpdate(
+                        dataRow.find(
+                          (item) => item["id" as keyof T] === ids[0]
+                        ) as T
+                      )
+                    }}
                     className="flex gap-4 hover:cursor-pointer"
                   >
                     <Edit2 />
@@ -145,7 +168,7 @@ const Table = <T,>({
                 onSearch(e.target.value)
               }}
               className="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-80 bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Search ..."
+              placeholder="Search..."
             />
           </div>
 
@@ -166,7 +189,7 @@ const Table = <T,>({
                 </div>
               </th>
               {columnsTitle.map((title, index) => {
-                if (title === "description") {
+                if (title === "description" || title === "image") {
                   return (
                     <th
                       key={index}
@@ -177,6 +200,7 @@ const Table = <T,>({
                     </th>
                   )
                 }
+
                 return (
                   <th key={index} scope="col" className="px-6 py-3">
                     {title}
@@ -203,7 +227,10 @@ const Table = <T,>({
                   {columnsTitle.map((title, index) => {
                     if (title === "image") {
                       return (
-                        <td key={index} className="px-6 py-4">
+                        <td
+                          key={index}
+                          className="hidden xl:table-cell px-6 py-4"
+                        >
                           <Image
                             url={row["image" as keyof T] as string}
                             className="w-20 h-20 rounded-sm"
@@ -260,3 +287,14 @@ const Table = <T,>({
 }
 
 export default Table
+
+// when the component is large and has a lot of data, it is better to use React.memo to avoid re-rendering the component
+
+// export default React.memo(
+//   Table,
+//   (prevProps, nextProps) =>
+//     prevProps.dataRow.length === nextProps.dataRow.length &&
+//     prevProps.page === nextProps.page &&
+//     prevProps.searchValue === nextProps.searchValue &&
+//     prevProps.totalPages === nextProps.totalPages
+// )

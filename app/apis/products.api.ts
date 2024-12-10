@@ -27,8 +27,8 @@ export const insertProductsAPI = async (
   return await AxiosInstance.post(`/products`, data)
 }
 
-export const updateProductsAPI = async (
-  data: Partial<Omit<Product, "id" | "image">>
+export const editProductsAPI = async (
+  data: Product
 ): Promise<AxiosResponse<{ data: { id: number } }, any>> => {
-  return await AxiosInstance.put(`/products`, data)
+  return await AxiosInstance.put(`/products/${data.id}`, data)
 }

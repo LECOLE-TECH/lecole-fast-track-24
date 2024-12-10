@@ -16,6 +16,7 @@ export const useGetProducts = (
       return data
     },
     queryKey: ["products", { page, search }],
+    staleTime: 1000 * 60,
     placeholderData: keepPreviousData
   })
 }

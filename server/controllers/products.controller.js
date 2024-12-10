@@ -1,11 +1,12 @@
 import { ReasonPhrases, StatusCodes } from "http-status-codes"
 import { ErrorResponse, SuccessResponse } from "../utils/http-response.js"
+import fuzzysort from "fuzzysort"
 import { faker } from "@faker-js/faker"
 import { db } from "../configs/db.config.js"
 
 export const createProduct = async (req, res) => {
   const { name, description, price, stock, category, brand } = req.body
-  const image = faker.image.url(640, 480, undefined, true)
+  const image = faker.image.urlPicsumPhotos(640, 480, undefined, true)
 
   const insertQuery = `
     INSERT INTO products (name, description, price, stock, category, image, brand)
@@ -18,11 +19,10 @@ export const createProduct = async (req, res) => {
       [name, description, price, stock, category, image, brand],
       function (err) {
         if (err) {
-          const error = new ErrorResponse(
+          return new ErrorResponse(
             ReasonPhrases.INTERNAL_SERVER_ERROR,
             StatusCodes.INTERNAL_SERVER_ERROR
-          )
-          return error.send(res)
+          ).send(res)
         }
 
         const selectQuery = `
@@ -50,40 +50,17 @@ export const createProduct = async (req, res) => {
 }
 
 export const getListProducts = async (req, res) => {
-  const { page = 1, limit = 10, search } = req.query
+  const { page = 1, limit = 10, search = "" } = req.query
 
   const offset = (page - 1) * limit
 
-  const baseQuery = `
-  SELECT * FROM products
-`
-  const whereClause = search.length > 0 ? `WHERE name LIKE ?` : ``
-  const paginationClause = `LIMIT ? OFFSET ?`
+  if (search.trim()) {
+    const baseQuery = `
+    SELECT * FROM products
+    ORDER BY id DESC;
+    `
 
-  const fullQuery = `${baseQuery} ${whereClause} ${paginationClause}`
-
-  const params =
-    search.length > 0
-      ? [`%${search}%`, parseInt(limit), offset]
-      : [parseInt(limit), offset]
-
-  db.all(fullQuery, params, (err, rows) => {
-    if (err) {
-      throw new ErrorResponse(
-        ReasonPhrases.INTERNAL_SERVER_ERROR,
-        StatusCodes.INTERNAL_SERVER_ERROR
-      )
-    }
-
-    const countQuery = `
-        SELECT COUNT(*) AS total FROM products
-      `
-    const countWhereClause = search ? `WHERE name LIKE ?` : ``
-    const fullCountQuery = `${countQuery} ${countWhereClause}`
-
-    const countParams = search ? [`%${search}%`] : []
-
-    db.get(fullCountQuery, countParams, (err, result) => {
+    db.all(baseQuery, (err, products) => {
       if (err) {
         throw new ErrorResponse(
           ReasonPhrases.INTERNAL_SERVER_ERROR,
@@ -91,27 +68,66 @@ export const getListProducts = async (req, res) => {
         )
       }
 
-      const total = result.total
-      const totalPages = Math.ceil(total / limit)
+      const fuzzyResults = fuzzysort.go(search, products, { key: "name" })
+      const matchedProducts = fuzzyResults.map((result) => result.obj)
+
+      const paginatedResults = matchedProducts.slice(offset, offset + limit)
 
       const data = {
         page: parseInt(page),
         limit: parseInt(limit),
-        total,
-        totalPages,
-        items: rows
+        total: matchedProducts.length,
+        totalPages: Math.ceil(matchedProducts.length / limit),
+        items: paginatedResults
       }
 
       return new SuccessResponse("List of products", StatusCodes.OK, data).send(
         res
       )
     })
-  })
+  } else {
+    const countQuery = `select count(*) as total from products where id >= 0;`
+    const baseQuery = ` SELECT * FROM products ORDER BY id DESC LIMIT ? OFFSET ?;`
+
+    db.all(baseQuery, [limit, offset], (err, products) => {
+      if (err) {
+        throw new ErrorResponse(
+          ReasonPhrases.INTERNAL_SERVER_ERROR,
+          StatusCodes.INTERNAL_SERVER_ERROR
+        )
+      }
+
+      db.get(countQuery, (err, row) => {
+        if (err) {
+          throw new ErrorResponse(
+            ReasonPhrases.INTERNAL_SERVER_ERROR,
+            StatusCodes.INTERNAL_SERVER_ERROR
+          )
+        }
+
+        const total = row.total
+        const totalPages = Math.ceil(total / limit)
+        const data = {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: products.length,
+          totalPages: totalPages,
+          items: products
+        }
+
+        return new SuccessResponse(
+          "List of products",
+          StatusCodes.OK,
+          data
+        ).send(res)
+      })
+    })
+  }
 }
 
 export const updateProduct = async (req, res) => {
   const { id } = req.params
-  const { name, description, price, stock, category, brand } = req.body
+  const { name, description, price, stock, category, brand, image } = req.body
 
   const query = `
     UPDATE products

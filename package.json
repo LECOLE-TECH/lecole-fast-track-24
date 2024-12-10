@@ -30,6 +30,7 @@
     "compression": "^1.7.5",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "fuzzysort": "^3.1.0",
     "helmet": "^8.0.0",
     "http-status-codes": "^2.3.0",
     "isbot": "^5.1.17",

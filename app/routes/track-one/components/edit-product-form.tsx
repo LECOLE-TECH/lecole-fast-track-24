@@ -1,5 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { Product } from "~/types/products.types"
+import { EditProduct, editProductSchema } from "~/utils/schema"
 import { Button } from "~/components/ui/button"
 import {
   Form,
@@ -18,28 +20,37 @@ import {
   SelectValue
 } from "~/components/ui/select"
 import { Input } from "~/components/ui/input"
-import { InsertProduct, insertProductSchema } from "~/utils/schema"
 import { DUMMY_CATEROGY } from "~/utils/constant"
+import { useState } from "react"
+import { toast } from "react-toastify"
 
 interface props {
-  onInsert: (data: InsertProduct) => void
+  product: Product
+  onEdit: (data: Product) => void
 }
-
-export const CreateProductForm = ({ onInsert }: props) => {
-  const form = useForm<InsertProduct>({
-    resolver: zodResolver(insertProductSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      price: undefined,
-      stock: undefined,
-      category: "",
-      brand: ""
-    }
+export const EditProductForm = ({ product, onEdit }: props) => {
+  const [initialValues, _] = useState<EditProduct>({
+    name: product.name,
+    description: product.description,
+    price: product.price,
+    stock: product.stock,
+    category: product.category,
+    brand: product.brand
   })
 
-  function onSubmit(values: InsertProduct) {
-    onInsert(values)
+  const form = useForm<EditProduct>({
+    resolver: zodResolver(editProductSchema),
+    defaultValues: initialValues
+  })
+
+  function onSubmit(values: EditProduct) {
+    if (JSON.stringify(values) !== JSON.stringify(initialValues)) {
+      onEdit({ ...product, ...values })
+    } else {
+      toast.warning(
+        "No changes detected. Please make some changes to update the product."
+      )
+    }
   }
 
   return (
@@ -160,8 +171,14 @@ export const CreateProductForm = ({ onInsert }: props) => {
           )}
         />
 
-        <Button className="w-full" type="submit">
-          Add Product
+        <Button
+          className="w-full"
+          type="submit"
+          disabled={
+            JSON.stringify(form.getValues()) === JSON.stringify(initialValues)
+          }
+        >
+          Edit Product
         </Button>
       </form>
     </Form>

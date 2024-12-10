@@ -5,3 +5,14 @@ export const APP_CONSTANTS = {
 export const TRACK_ONE_CONSTANTS = {
   PRODUCT_TAB: "products"
 }
+
+export const DUMMY_CATEROGY = [
+  "Electronics",
+  "Home",
+  "Fashion",
+  "Health",
+  "Beauty",
+  "Toys",
+  "Books",
+  "Sports"
+]

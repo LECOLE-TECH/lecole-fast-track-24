@@ -9,7 +9,7 @@ function generateProduct() {
     price,
     stock: faker.number.int({ min: 0, max: 500 }),
     category: faker.commerce.department(),
-    image: faker.image.url(640, 480, undefined, true),
+    image: faker.image.urlPicsumPhotos(640, 480, undefined, true),
     brand: faker.company.name()
   }
 }
@@ -27,8 +27,7 @@ export const insertProductsDummy = (db) => {
       stock INTEGER NOT NULL,
       category TEXT,
       image TEXT,
-      brand TEXT,
-      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      brand TEXT
       )
     `)
   })

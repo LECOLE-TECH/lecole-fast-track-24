@@ -1,3 +1,5 @@
+Track 1
+
 Day 1:
   - Reading source code and research library before code
   - Set up axios an React query call API
@@ -8,3 +10,14 @@ Day 1:
     Update product: Done API and not have UI
     Create product: Done API and not have UI
   - Handle lazy loading image, user double click, debound user fast search, medium reponsive, spliting loading
+
+Day 2:
+  - UI CRUD product
+
+Day 3:
+  - Done CRUD Product
+  - Implement fuzzy search using fuzzysort library
+  - Optimize render table using React.memo
+  - Validation input in Frontend and Backend using zod library
+  - Responsive
+
