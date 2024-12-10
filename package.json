@@ -17,6 +17,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"cors": "^2.8.5",
+		"dotenv": "^16.4.5",
 		"express": "^4.21.2",
 		"isbot": "^5.1.17",
 		"lodash.debounce": "^4.0.8",
