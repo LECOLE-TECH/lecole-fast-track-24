@@ -1,6 +1,8 @@
+import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import type { Route } from "../track-one/+types";
+import { lazy, Suspense } from "react";
 
-import { Button } from "~/components/ui/button";
+const UserTable = lazy(() => import("@/components/UserTable/UserTable"));
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Track Two" }];
@@ -9,7 +11,11 @@ export function meta({}: Route.MetaArgs) {
 export default function TrackTwo() {
   return (
     <div className="flex items-center justify-center h-screen">
-      <Button>Click me</Button>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ProtectedRoute requiredRole="authenticated">
+          <UserTable />
+        </ProtectedRoute>
+      </Suspense>
     </div>
   );
 }

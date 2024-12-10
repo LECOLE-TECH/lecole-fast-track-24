@@ -8,7 +8,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function TrackOne() {
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div>
       <Button>Click me</Button>
     </div>
   );

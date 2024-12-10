@@ -8,13 +8,13 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   css: {
     postcss: {
-      plugins: [tailwindcss, autoprefixer]
-    }
+      plugins: [tailwindcss, autoprefixer],
+    },
   },
   plugins: [reactRouter(), tsconfigPaths()],
   resolve: {
     alias: {
-      "~": path.resolve(__dirname, "./app")
-    }
-  }
+      "~": path.resolve(__dirname, "./app"),
+    },
+  },
 });
