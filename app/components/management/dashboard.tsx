@@ -135,7 +135,10 @@ export default function Dashboard() {
         />
         <ProductModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            formik.resetForm();
+            setIsModalOpen(false);
+          }}
           formik={formik}
           isEditing={!!selectedProduct}
         />
