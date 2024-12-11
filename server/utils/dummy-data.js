@@ -27,7 +27,16 @@ export const insertProductsDummy = (db) => {
       stock INTEGER NOT NULL,
       category TEXT,
       image TEXT,
+<<<<<<< HEAD
       brand TEXT
+=======
+<<<<<<< HEAD
+      brand TEXT,
+      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+=======
+      brand TEXT
+>>>>>>> b57baeca8064e46d519f66afb2e6f3434268dadb
+>>>>>>> 17700c354425712dc7027da132ef62cddfbbb220
       )
     `)
   })

@@ -200,7 +200,6 @@ const Table = <T,>({
                     </th>
                   )
                 }
-
                 return (
                   <th key={index} scope="col" className="px-6 py-3">
                     {title}
