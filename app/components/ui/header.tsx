@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 
 const pages = [
   { name: "Home", path: "home" },
-  { name: "Special", path: "special" },
-  { name: "News", path: "news" },
-  { name: "About", path: "about" },
-  { name: "Contact", path: "contact" },
+  { name: "About Me", path: "about" },
+  { name: "Contact Me", path: "contact" },
 ];
 
 export default function Header() {
