@@ -4,7 +4,6 @@ import { Link, useLocation } from "react-router";
 const pages = [
   { name: "Home", path: "/track-one" },
   { name: "About Me", path: "/track-one/about" },
-  { name: "Contact Me", path: "contact" },
 ];
 
 export default function Header() {
