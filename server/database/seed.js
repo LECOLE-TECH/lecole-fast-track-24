@@ -1,4 +1,5 @@
 import db from "./db.js";
+import bcrypt from "bcrypt";
 
 const seedData = [
 	{
@@ -315,7 +316,34 @@ const seedData = [
 	},
 ];
 
-const seedDatabase = () => {
+const seedUserData = [
+	{
+		username: "user1",
+		password: "123456",
+		roles: "user",
+		secret_phrase: "secret123",
+	},
+	{
+		username: "admin1",
+		password: "123456",
+		roles: "admin",
+		secret_phrase: "admin123",
+	},
+	{
+		username: "user2",
+		password: "123456",
+		roles: "user",
+		secret_phrase: "secret456",
+	},
+	{
+		username: "admin2",
+		password: "123456",
+		roles: "admin",
+		secret_phrase: "admin456",
+	},
+];
+
+const seedProductsDatabase = () => {
 	db.get("SELECT COUNT(*) AS count FROM products", (err, row) => {
 		if (err) {
 			console.error("Error counting products:", err.message);
@@ -344,4 +372,26 @@ const seedDatabase = () => {
 	});
 };
 
-seedDatabase();
+const seedUsersDatabase = () => {
+	db.get("SELECT COUNT(*) AS count FROM users", (err, row) => {
+		if (err) {
+			console.error("Error counting users:", err.message);
+			return;
+		}
+		if (row?.count === 0) {
+			const stmt = db.prepare(
+				"INSERT INTO users (username, password, roles, secret_phrase) VALUES (?, ?, ?, ?)",
+			);
+			for (const user of seedUserData) {
+				stmt.run(user.username, user.password, user.roles, user.secret_phrase);
+			}
+			stmt.finalize();
+			console.log("Database seeded with users data");
+		} else {
+			console.log("Database already contains users. Seeding skipped.");
+		}
+	});
+};
+
+seedProductsDatabase();
+seedUsersDatabase();

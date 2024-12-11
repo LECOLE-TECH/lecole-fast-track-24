@@ -1,6 +1,6 @@
 import sqlite3 from "sqlite3";
 
-const DBSOURCE = "./database/products.db";
+const DBSOURCE = process.env.DB_PATH || "./database/products.db";
 
 const db = new sqlite3.Database(DBSOURCE, (err) => {
 	if (err) {
@@ -18,9 +18,25 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
 			)`,
 			(err) => {
 				if (err) {
-					console.error("Error creating table:", err.message);
+					console.error("Error creating products table:", err.message);
 				} else {
 					console.log("Products table exists or created successfully.");
+				}
+			},
+		);
+		db.run(
+			`CREATE TABLE IF NOT EXISTS users (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				username TEXT NOT NULL UNIQUE,
+				password TEXT NOT NULL,
+				roles TEXT NOT NULL,
+				secret_phrase TEXT NOT NULL
+			)`,
+			(err) => {
+				if (err) {
+					console.error("Error creating users table:", err.message);
+				} else {
+					console.log("Users table exists or created successfully.");
 				}
 			},
 		);
