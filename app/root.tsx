@@ -7,8 +7,8 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import type { Route } from "../.react-router/types/app/+types/root";
 import stylesheet from "./app.css?url";
 
@@ -29,15 +29,19 @@ export const links: Route.LinksFunction = () => [
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
+   <head>
+  <meta charSet="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <Meta />
+  <Links />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/react-toastify@latest/dist/ReactToastify.min.css"
+  />
+</head>
       <body>
         {children}
-        <ToastContainer />  
+        <ToastContainer /> 
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -46,7 +50,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+      <Outlet /> 
+    
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
