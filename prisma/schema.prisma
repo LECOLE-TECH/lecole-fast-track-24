@@ -17,5 +17,5 @@ model User {
   user_id       String @id @default(cuid())
   username      String @unique
   secret_phrase String
-  roles         String @default("admin")
+  roles         String @default("user")
 }

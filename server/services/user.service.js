@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { encryptPassword } from "../utils/crypto.util";
 
 const prisma = new PrismaClient();
 
@@ -36,5 +37,20 @@ export const getUserByUsername = async (username) => {
     });
   } catch (error) {
     throw new Error(`Failed to fetch user with ${username} from database`);
+  }
+};
+
+export const createUser = async (newUser) => {
+  const encryptedPass = encryptPassword(newUser.secret_phrase);
+  try {
+    return await prisma.user.create({
+      data: {
+        username: newUser.username,
+        secret_phrase: encryptedPass,
+        roles: newUser.roles,
+      },
+    });
+  } catch (error) {
+    throw new Error("Failed to add product");
   }
 };
