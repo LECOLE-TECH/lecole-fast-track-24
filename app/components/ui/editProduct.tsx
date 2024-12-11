@@ -44,12 +44,16 @@ export default function EditProduct({ product, onClose, setProducts }: EditProdu
   
     try {
       const response = await productApi.patch(productId, updatedProduct);
-  
-      toast.success('Product updated successfully!');
-      setProducts(prevProducts => prevProducts.map(p => p.id === productId ? response : p));
-      navigate('/track-one');
-      onClose();
+      if(response){
+        toast.success('Product updated successfully!');
+        setProducts(prevProducts => prevProducts.map(p => p.id === productId ? updatedProduct : p));
+        navigate('/track-one');
+        onClose();
+      }else{
+        toast.success('Product updated Error!');
+      }
     } catch (error) {
+     
       console.error('Error updating product:', error);
       toast.error('Failed to update product');
     }
