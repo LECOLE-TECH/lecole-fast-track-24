@@ -1,6 +1,7 @@
+import Header from "~/components/ui/header";
 import type { Route } from "../track-one/+types";
-
-import { Button } from "~/components/ui/button";
+import Footer from "~/components/ui/footer";
+import Dashboard from "~/components/management/dashboard";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Track One" }];
@@ -9,7 +10,9 @@ export function meta({}: Route.MetaArgs) {
 export default function TrackOne() {
   return (
     <div>
-      <Button>Click me</Button>
+      <Header />
+      <Dashboard />
+      <Footer />
     </div>
   );
 }
