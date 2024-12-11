@@ -26,3 +26,15 @@ export const getPaginationUsers = async (page, take) => {
     throw new Error("Failed to fetch users from database.");
   }
 };
+
+export const getUserByUsername = async (username) => {
+  try {
+    return await prisma.user.findUnique({
+      where: {
+        username,
+      },
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch user with ${username} from database`);
+  }
+};
