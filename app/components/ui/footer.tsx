@@ -38,7 +38,7 @@ export default function Footer() {
               Quick Links
             </h6>
             <div className='flex flex-col'>
-              <Link to='#home' className={linkStyle}>
+              <Link to='/track-one' className={linkStyle}>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   className='h-5 w-5 inline mr-2'
@@ -55,7 +55,7 @@ export default function Footer() {
                 </svg>
                 Home
               </Link>
-              <Link to='#about-me' className={linkStyle}>
+              <Link to='/track-one/about' className={linkStyle}>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   className='h-5 w-5 inline mr-2'

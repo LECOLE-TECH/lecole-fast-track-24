@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 const pages = [
-  { name: "Home", path: "home" },
-  { name: "About Me", path: "about" },
+  { name: "Home", path: "/track-one" },
+  { name: "About Me", path: "/track-one/about" },
   { name: "Contact Me", path: "contact" },
 ];
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
+  const [activeSection, setActiveSection] = useState("/track-one");
+  const location = useLocation();
 
   useEffect(() => {
+    const currentPath = location.pathname;
+    setActiveSection(currentPath);
+
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
       if (isScrolled !== scrolled) {
@@ -37,14 +41,10 @@ export default function Header() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [scrolled]);
+  }, [scrolled, location]);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-    setIsMenuOpen(false);
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
@@ -69,8 +69,7 @@ export default function Header() {
               />
             </svg>
             <Link
-              to={"#home"}
-              onClick={() => scrollToSection("home")}
+              to={"/track-one"}
               className='text-2xl font-bold text-gray-800 hover:text-green-500 transition-colors duration-300'
             >
               PRODUCT MANAGEMENT
@@ -82,8 +81,7 @@ export default function Header() {
             {pages.map((page) => (
               <Link
                 key={page.name}
-                to={`#${page.path}`}
-                onClick={() => scrollToSection(page.path)}
+                to={page.path}
                 className={`text-gray-600 hover:text-green-500 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 ${
                   activeSection === page.path
                     ? "bg-green-100 text-green-600"
@@ -98,7 +96,7 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <div className='md:hidden'>
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={toggleMenu}
               className='text-gray-500 hover:text-green-500 focus:outline-none focus:text-green-500 transition-colors duration-300'
               aria-label='toggle menu'
             >
@@ -142,8 +140,8 @@ export default function Header() {
               {pages.map((page) => (
                 <Link
                   key={page.name}
-                  to={`#${page.path}`}
-                  onClick={() => scrollToSection(page.path)}
+                  to={page.path}
+                  onClick={toggleMenu}
                   className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300 ${
                     activeSection === page.path
                       ? "bg-green-100 text-green-600"
