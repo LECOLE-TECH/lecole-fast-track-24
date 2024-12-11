@@ -14,47 +14,50 @@ const calculateVisiblePages = (
   totalPages: number,
   currentPage: number
 ) => {
-  const pages: number[] = []
   const half = Math.floor(visiblePages / 2)
-
   let start = Math.max(1, currentPage - half)
   let end = Math.min(totalPages, currentPage + half)
+
   if (end - start + 1 < visiblePages) {
     const diff = visiblePages - (end - start + 1)
     start = Math.max(1, start - diff)
     end = Math.min(totalPages, end + diff)
   }
 
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  return pages
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i)
 }
+
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
   visiblePages = 3
 }) => {
-  const [visiblePagesArray, setVisiblePageArray] = useState<number[]>([])
+  const [visiblePagesArray, setVisiblePagesArray] = useState<number[]>([])
 
   useEffect(() => {
-    setVisiblePageArray(
+    setVisiblePagesArray(
       calculateVisiblePages(visiblePages, totalPages, currentPage)
     )
   }, [currentPage, totalPages, visiblePages])
+
+  const handlePageChange = (page: number) => {
+    if (page !== currentPage && page > 0 && page <= totalPages) {
+      onPageChange(page)
+    }
+  }
 
   return (
     <ul className="flex items-center h-10 gap-1">
       <li>
         <Button
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`interceptor-loading flex items-center justify-center px-2 h-10 ms-0 leading-tight ${
+          className={`flex items-center justify-center px-2 h-10 leading-tight border border-e-0 border-gray-300 rounded-s-lg ${
             currentPage === 1
               ? "text-gray-300 bg-gray-100 hover:bg-gray-100"
               : "text-gray-500 bg-white hover:bg-gray-100"
-          } border border-e-0 border-gray-300 rounded-s-lg`}
+          }`}
         >
           <span className="sr-only">Previous</span>
           <ChevronLeft />
@@ -64,8 +67,8 @@ const Pagination: React.FC<PaginationProps> = ({
       {visiblePagesArray[0] > 1 && (
         <li>
           <Button
-            onClick={() => onPageChange(1)}
-            className="interceptor-loading px-4 h-10 text-gray-500 bg-white hover:bg-gray-100 border border-gray-300"
+            onClick={() => handlePageChange(1)}
+            className="px-4 h-10 text-gray-500 bg-white hover:bg-gray-100 border border-gray-300"
           >
             1
           </Button>
@@ -76,12 +79,12 @@ const Pagination: React.FC<PaginationProps> = ({
       {visiblePagesArray.map((page) => (
         <li key={page}>
           <Button
-            onClick={() => onPageChange(page)}
-            className={`interceptor-loading flex items-center justify-center px-4 h-10 leading-tight ${
+            onClick={() => handlePageChange(page)}
+            className={`flex items-center justify-center px-4 h-10 leading-tight border border-gray-300 ${
               page === currentPage
                 ? "text-white bg-blue-500 hover:bg-blue-600"
                 : "text-gray-500 bg-white hover:bg-gray-100"
-            } border border-gray-300`}
+            }`}
           >
             {page}
           </Button>
@@ -94,8 +97,8 @@ const Pagination: React.FC<PaginationProps> = ({
             <span className="px-2">...</span>
           )}
           <Button
-            onClick={() => onPageChange(totalPages)}
-            className="interceptor-loading px-4 h-10 text-gray-500 bg-white hover:bg-gray-100 border border-gray-300"
+            onClick={() => handlePageChange(totalPages)}
+            className="px-4 h-10 text-gray-500 bg-white hover:bg-gray-100 border border-gray-300"
           >
             {totalPages}
           </Button>
@@ -104,13 +107,13 @@ const Pagination: React.FC<PaginationProps> = ({
 
       <li>
         <Button
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`interceptor-loading flex items-center justify-center px-2 h-10 leading-tight ${
+          className={`flex items-center justify-center px-2 h-10 leading-tight border border-gray-300 rounded-e-lg ${
             currentPage === totalPages
               ? "text-gray-300 bg-gray-100 hover:bg-gray-100"
               : "text-gray-500 bg-white hover:bg-gray-100"
-          } border border-gray-300 rounded-e-lg`}
+          }`}
         >
           <span className="sr-only">Next</span>
           <ChevronRight />

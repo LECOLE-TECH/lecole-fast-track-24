@@ -554,11 +554,20 @@
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 17700c354425712dc7027da132ef62cddfbbb220
 "@radix-ui/number@1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/number/-/number-1.1.0.tgz#1e95610461a09cdf8bb05c152e76ca1278d5da46"
   integrity sha512-V3gRzhVNU1ldS5XhAPTom1fOIo4ccrjjJgmE+LI2h/WaFpHmx0MQApT+KZHnx8abG6Avtfcz4WoEciMnpFT3HQ==
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> b57baeca8064e46d519f66afb2e6f3434268dadb
+>>>>>>> 17700c354425712dc7027da132ef62cddfbbb220
 "@radix-ui/primitive@1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.0.tgz#42ef83b3b56dccad5d703ae8c42919a68798bbe2"
@@ -680,6 +689,10 @@
   dependencies:
     "@radix-ui/react-use-layout-effect" "1.1.0"
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 17700c354425712dc7027da132ef62cddfbbb220
 "@radix-ui/react-label@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-label/-/react-label-2.1.0.tgz#3aa2418d70bb242be37c51ff5e51a2adcbc372e3"
@@ -687,6 +700,11 @@
   dependencies:
     "@radix-ui/react-primitive" "2.0.0"
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> b57baeca8064e46d519f66afb2e6f3434268dadb
+>>>>>>> 17700c354425712dc7027da132ef62cddfbbb220
 "@radix-ui/react-menu@2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-menu/-/react-menu-2.1.2.tgz#91f6815845a4298dde775563ed2d80b7ad667899"
@@ -765,6 +783,10 @@
     "@radix-ui/react-use-callback-ref" "1.1.0"
     "@radix-ui/react-use-controllable-state" "1.1.0"
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 17700c354425712dc7027da132ef62cddfbbb220
 "@radix-ui/react-select@^2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-select/-/react-select-2.1.2.tgz#2346e118966db793940f6a866fd4cc5db2cc275e"
@@ -792,6 +814,11 @@
     aria-hidden "^1.1.1"
     react-remove-scroll "2.6.0"
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> b57baeca8064e46d519f66afb2e6f3434268dadb
+>>>>>>> 17700c354425712dc7027da132ef62cddfbbb220
 "@radix-ui/react-separator@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-separator/-/react-separator-1.1.0.tgz#ee0f4d86003b0e3ea7bc6ccab01ea0adee32663e"
