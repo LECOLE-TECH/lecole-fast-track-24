@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { encryptPassword } from "../utils/crypto.util.js";
+import { decryptPassword, encryptPassword } from "../utils/crypto.util.js";
 
 const prisma = new PrismaClient();
 
@@ -37,6 +37,26 @@ export const getUserByUsername = async (username) => {
     });
   } catch (error) {
     throw new Error(`Failed to fetch user with ${username} from database`);
+  }
+};
+
+export const getUserRevealPass = async (id) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        user_id: id,
+      },
+    });
+    if (!user) {
+      return "Not found";
+    }
+    const revealPassUser = {
+      ...user,
+      secret_phrase: decryptPassword(user.secret_phrase),
+    };
+    return revealPassUser;
+  } catch (error) {
+    throw new Error("Failed to fetch reveal pass");
   }
 };
 

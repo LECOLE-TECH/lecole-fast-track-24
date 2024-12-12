@@ -35,6 +35,26 @@ export const getUserByUsername = async (username: string): Promise<User> => {
   }
 };
 
+export const getUserRevealPass = async (id: string): Promise<User> => {
+  try {
+    const response = await fetch(`${baseUrl}/reveal-pass/${id}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAccessToken()}`,
+      },
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw error;
+  }
+};
+
 export const updateSecretPhrase = async (
   id: string,
   newValueSecret: object

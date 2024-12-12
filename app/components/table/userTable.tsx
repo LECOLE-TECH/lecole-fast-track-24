@@ -1,4 +1,5 @@
 import type { User } from "~/types/user";
+import LoadingSpinner from "../loadingSpinner";
 
 interface UserTableProps {
   users: User[] | [];
@@ -8,6 +9,8 @@ interface UserTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   currentUser: User | null;
+  selectedUser: User | null;
+  isReveal: boolean;
 }
 
 export default function UserTable({
@@ -18,6 +21,8 @@ export default function UserTable({
   totalPages,
   onPageChange,
   currentUser,
+  selectedUser,
+  isReveal,
 }: UserTableProps) {
   const isAdmin = currentUser?.roles === "admin";
   const isAuthenticated = !!currentUser;
@@ -64,7 +69,9 @@ export default function UserTable({
                 )}
                 {isAdmin && (
                   <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300'>
-                    {user.secret_phrase}
+                    {isReveal && selectedUser?.username == user.username
+                      ? selectedUser?.secret_phrase
+                      : user.secret_phrase}
                   </td>
                 )}
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
@@ -81,7 +88,9 @@ export default function UserTable({
                       onClick={() => onOpen(user)}
                       className='text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200 transition-colors duration-150 ease-in-out'
                     >
-                      View secret
+                      {isReveal && selectedUser?.username == user.username
+                        ? "Hide secret"
+                        : "View secret"}
                     </button>
                   )}
                 </td>

@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { getUsers, updateSecretPhrase } from "~/apis/userApi";
+import {
+  getUserRevealPass,
+  getUsers,
+  updateSecretPhrase,
+} from "~/apis/userApi";
 import type { User } from "~/types/user";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -27,6 +31,7 @@ export default function UserList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { user } = useUser();
+  const [isReveal, setIsReveal] = useState(false);
 
   const fetchUsers = useCallback(async (page: number) => {
     try {
@@ -66,8 +71,15 @@ export default function UserList() {
     setIsModalOpen(true);
   };
 
-  const handleViewSecret = (user: User) => {
-    setSelectedUser(user);
+  const handleViewSecret = async (user: User) => {
+    if (isReveal) {
+      setIsReveal(false);
+      setSelectedUser(null);
+    } else {
+      setIsReveal(true);
+      const revealPass = await getUserRevealPass(user.user_id);
+      setSelectedUser(revealPass);
+    }
   };
 
   const formik = useFormik({
@@ -128,6 +140,8 @@ export default function UserList() {
           totalPages={totalPages}
           onPageChange={setCurrentPage}
           currentUser={user}
+          selectedUser={selectedUser}
+          isReveal={isReveal}
         />
         <UpdateSecretModal
           isOpen={isModalOpen}

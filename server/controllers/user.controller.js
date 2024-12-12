@@ -5,6 +5,7 @@ import {
 import {
   getPaginationUsers,
   getUserByUsername,
+  getUserRevealPass,
   updateUserSecretPhrase,
 } from "../services/user.service.js";
 
@@ -61,6 +62,19 @@ export const getByUsername = async (req, res) => {
       user,
       `Get user with username: ${username} successfully`
     );
+  } catch (error) {
+    standardResponse(res, 500, null, "Fail to fetch user api");
+  }
+};
+
+export const getRevealPass = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = await getUserRevealPass(id);
+    if (data == "Not found") {
+      return standardResponse(res, 404, null, `No user found`);
+    }
+    standardResponse(res, 200, data, `Get user successfully`);
   } catch (error) {
     standardResponse(res, 500, null, "Fail to fetch user api");
   }
