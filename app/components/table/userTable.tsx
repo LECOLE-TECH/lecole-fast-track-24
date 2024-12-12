@@ -1,5 +1,4 @@
 import type { User } from "~/types/user";
-import LoadingSpinner from "../loadingSpinner";
 
 interface UserTableProps {
   users: User[] | [];

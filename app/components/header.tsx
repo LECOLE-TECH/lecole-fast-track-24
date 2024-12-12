@@ -6,6 +6,7 @@ import * as Yup from "yup";
 import LoginModal from "./modal/loginModal";
 import { login, logout } from "~/apis/authApi";
 import { useUser } from "~/contexts/userContext";
+import { toast } from "react-toastify";
 
 const pages = [
   { name: "Home", path: "/track-two" },
@@ -74,15 +75,19 @@ export default function Header() {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         const response = await login(values);
-        setUser({
-          user_id: response?.user_id as string,
-          username: response?.username as string,
-          roles: response?.roles as string,
-          ord: "",
-          secret_phrase: "",
-        });
-        setIsModalOpen(false);
-        resetForm();
+        if (response == null) {
+          toast.error("Incorrect credentials");
+        } else {
+          setUser({
+            user_id: response?.user_id as string,
+            username: response?.username as string,
+            roles: response?.roles as string,
+            ord: "",
+            secret_phrase: "",
+          });
+          setIsModalOpen(false);
+          resetForm();
+        }
       } catch (error) {
         setLoginError(
           error instanceof Error

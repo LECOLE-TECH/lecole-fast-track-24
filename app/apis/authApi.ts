@@ -19,7 +19,9 @@ export const login = async (user: Omit<User, "user_id" | "roles" | "ord">) => {
       throw new Error(data.message || "Network response was not ok");
     }
 
-    if (data.data && data.data.accessToken) {
+    if (!data.data) {
+      return null;
+    } else if (data.data && data.data.accessToken) {
       localStorage.setItem("accessToken", data.data.accessToken);
       const decodedToken = decodeToken(data.data.accessToken);
       return {
@@ -30,7 +32,7 @@ export const login = async (user: Omit<User, "user_id" | "roles" | "ord">) => {
     }
   } catch (error) {
     console.error("Login user: ", error);
-    throw error;
+    return null;
   }
 };
 
