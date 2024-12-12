@@ -7,6 +7,7 @@ import UserTable from "./table/userTable";
 import { useUser } from "~/contexts/userContext";
 import socket from "~/utils/socket";
 import UpdateSecretModal from "./modal/updateSecretModal";
+import { toast } from "react-toastify";
 
 const validationSchema = Yup.object({
   new_secret_phrase: Yup.string()
@@ -77,7 +78,6 @@ export default function UserList() {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         if (selectedUser) {
-          console.log(JSON.stringify(values));
           socket.emit("update-secret-phrase", {
             id: selectedUser.user_id,
             newSecretPhrase: values.new_secret_phrase,
@@ -93,6 +93,26 @@ export default function UserList() {
       }
     },
   });
+
+  useEffect(() => {
+    socket.on("success", (data) => {
+      toast.success(data.message);
+    });
+
+    socket.on("error", (data) => {
+      toast.error(data.error);
+    });
+
+    socket.on("user-updated-secret-phrase", (data) => {
+      toast.info(data.broadcastMess);
+    });
+
+    return () => {
+      socket.off("success");
+      socket.off("error");
+      socket.off("user-updated-secret-phrase");
+    };
+  }, []);
 
   return (
     <div className='min-h-screen bg-gray-100 p-8 pt-24'>

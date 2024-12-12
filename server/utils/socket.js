@@ -26,6 +26,15 @@ export default function handleSocket(io) {
           socket.emit("success", {
             message: "Secret phrase updated successfully",
           });
+
+          const broadcastMess =
+            editor.roles === "admin"
+              ? "Admin has updated a secret phrase"
+              : `${editor.username} has updated their secret phrase`;
+
+          socket.broadcast.emit("user-updated-secret-phrase", {
+            broadcastMess,
+          });
         } else {
           socket.emit("error", {
             error:
