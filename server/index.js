@@ -1,5 +1,6 @@
 import express from "express";
 import http from "http";
+import session from "express-session";
 import { Server } from "socket.io";
 import funcUserRouter from "./routes/user.router.js";
 import funcAuthRouter from "./routes/auth.router.js";
@@ -11,6 +12,14 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: true,
+    saveUninitialized: true,
+  })
+);
 
 io.on("connection", (socket) => {
   console.log("A user connected");

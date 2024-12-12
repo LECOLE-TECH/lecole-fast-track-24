@@ -19,16 +19,25 @@ export const encryptPassword = (password) => {
 };
 
 export const decryptPassword = (hashedPassword) => {
-  const [ivHex, encrypted] = hashedPassword.split(":");
-  const iv = Buffer.from(ivHex, "hex");
-  const decipher = crypto.createDecipheriv(
-    process.env.ALGORITHM,
-    secretKey,
-    iv
-  );
-
-  let decrypted = decipher.update(encrypted, "hex", "utf-8");
-  decrypted += decipher.final("utf-8");
-
-  return decrypted;
+  try {
+    const [ivHex, encrypted] = hashedPassword.split(":");
+    if (!ivHex || !encrypted) {
+      throw new Error("Invalid hashed password format.");
+    }
+    const iv = Buffer.from(ivHex, "hex");
+    if (iv.length !== 16) {
+      throw new Error("Invalid IV length. Must be exactly 16 bytes.");
+    }
+    const decipher = crypto.createDecipheriv(
+      process.env.ALGORITHM,
+      secretKey,
+      iv
+    );
+    let decrypted = decipher.update(encrypted, "hex", "utf-8");
+    decrypted += decipher.final("utf-8");
+    return decrypted;
+  } catch (error) {
+    console.error("Error in decryptPassword:", error.message);
+    throw new Error("Failed to decrypt password.");
+  }
 };
