@@ -3,8 +3,8 @@ import { Link, useLocation } from "react-router";
 import { motion } from "framer-motion";
 
 const pages = [
-  { name: "Home", path: "/track-one" },
-  { name: "About Me", path: "/track-one/about" },
+  { name: "Home", path: "/track-two" },
+  { name: "About Me", path: "/track-two/about" },
 ];
 
 export default function Header() {
@@ -53,18 +53,18 @@ export default function Header() {
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100 }}
       className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-md" : "bg-transparent"
+        scrolled ? "bg-blue-50 shadow-md" : "bg-transparent"
       }`}
     >
       <div className='container mx-auto px-4'>
         <div className='flex justify-between items-center py-4'>
           <Link
             to={"/track-one"}
-            className='text-2xl font-bold text-gray-800 hover:text-green-500 transition-colors duration-300 flex items-center'
+            className='text-2xl font-bold text-blue-600 hover:text-yellow-400 transition-colors duration-300 flex items-center'
           >
             <motion.svg
               xmlns='http://www.w3.org/2000/svg'
-              className='h-10 w-10 mr-2 text-green-500'
+              className='h-10 w-10 mr-2 text-yellow-400'
               viewBox='0 0 20 20'
               fill='currentColor'
               whileHover={{ rotate: 180 }}
@@ -89,9 +89,9 @@ export default function Header() {
               >
                 <Link
                   to={page.path}
-                  className={`text-gray-600 hover:text-green-500 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 ${
+                  className={`text-blue-600 hover:text-yellow-400 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 ${
                     activeSection === page.path
-                      ? "bg-green-100 text-green-600"
+                      ? "bg-blue-100 text-yellow-500"
                       : ""
                   }`}
                 >
@@ -105,7 +105,7 @@ export default function Header() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className='hidden md:block bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-300'
+            className='hidden md:block bg-yellow-400 text-blue-800 px-4 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md'
           >
             Log In
           </motion.button>
@@ -114,7 +114,7 @@ export default function Header() {
           <div className='md:hidden'>
             <motion.button
               onClick={toggleMenu}
-              className='text-gray-500 hover:text-green-500 focus:outline-none focus:text-green-500 transition-colors duration-300'
+              className='text-blue-600 hover:text-yellow-400 focus:outline-none focus:text-yellow-400 transition-colors duration-300'
               aria-label='toggle menu'
               whileTap={{ scale: 0.95 }}
             >
@@ -168,8 +168,8 @@ export default function Header() {
                   onClick={toggleMenu}
                   className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-300 ${
                     activeSection === page.path
-                      ? "bg-green-100 text-green-600"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-green-500"
+                      ? "bg-blue-100 text-yellow-500"
+                      : "text-blue-600 hover:bg-blue-50 hover:text-yellow-400"
                   }`}
                 >
                   {page.name}
@@ -178,7 +178,7 @@ export default function Header() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className='w-full mt-2 bg-green-500 text-white px-3 py-2 rounded-md hover:bg-green-600 transition-colors duration-300'
+                className='w-full mt-2 bg-yellow-400 text-blue-800 px-3 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md'
               >
                 Log In
               </motion.button>
