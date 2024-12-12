@@ -1,6 +1,7 @@
 # LECOLE Track Two Server
 
 ## Features
+- JWT authentication
 - Manage user data using Prisma ORM.
 - Pre-configured SQLite database for easy setup.
 - Auto-seeding of user data.
