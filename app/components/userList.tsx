@@ -4,6 +4,7 @@ import type { User } from "~/types/user";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import UserTable from "./table/userTable";
+import { useUser } from "~/contexts/userContext";
 
 const validationSchema = Yup.object({
   new_secret_phrase: Yup.string()
@@ -22,6 +23,7 @@ export default function UserList() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { user } = useUser();
 
   const fetchUsers = async (page: number) => {
     try {
@@ -39,8 +41,9 @@ export default function UserList() {
   };
 
   useEffect(() => {
+    console.log("checkin");
     fetchUsers(currentPage);
-  }, [currentPage]);
+  }, [currentPage, user]);
 
   const handleUpdateSecret = (user: User) => {
     setSelectedUser(user);

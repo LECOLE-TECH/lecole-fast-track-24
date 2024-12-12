@@ -9,7 +9,9 @@ export const getUsers = async (
   take: number = 10
 ): Promise<PaginationResponse<User>> => {
   try {
-    const response = await fetch(`${baseUrl}?page=${page}&take=${take}`);
+    const response = await fetch(`${baseUrl}?page=${page}&take=${take}`, {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
