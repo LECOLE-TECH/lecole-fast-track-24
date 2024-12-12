@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import funcUserRouter from "./routes/user.router.js";
+import funcAuthRouter from "./routes/auth.router.js";
 
 const app = express();
 const port = 3000;
@@ -76,6 +77,7 @@ io.on("connection", (socket) => {
 });
 
 funcUserRouter(app);
+funcAuthRouter(app);
 
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
