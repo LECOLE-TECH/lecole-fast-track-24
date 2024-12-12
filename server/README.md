@@ -28,6 +28,14 @@ yarn install
 - Create ```.env``` file:
 ```bash
 DATABASE_URL="file:./database/user.db"
+VITE_API_BASE_URL="http://localhost:3000"
+
+SECRET_KEY="your_secret_key"
+
+ALGORITHM="your_agorithm"
+
+JWT_SECRET="your_jwt_secret"
+SESSION_SECRET="your_session_secret"
 ```
 
 #### 4. Seed the Database
