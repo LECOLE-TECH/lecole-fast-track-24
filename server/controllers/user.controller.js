@@ -10,18 +10,35 @@ import {
 export const getAll = async (req, res) => {
   const { page = 1, take = 10 } = req.query;
   try {
-    const users = await getPaginationUsers(Number(page), Number(take));
+    const data = await getPaginationUsers(Number(page), Number(take));
+    const loggedInUser = req.session.user;
+    let filterUsers;
+    if (!loggedInUser) {
+      filterUsers = data.users.map((user) => ({
+        user_id: user.user_id,
+        username: user.username,
+      }));
+    } else if (loggedInUser.roles == "user") {
+      filterUsers = data.users.map((user) => ({
+        user_id: user.user_id,
+        username: user.username,
+        roles: user.roles,
+      }));
+    } else if (loggedInUser.roles == "admin") {
+      filterUsers = data.users;
+    }
     paginationResponse(
       res,
       200,
-      users.users,
+      filterUsers,
       `Get all users successfully`,
-      users.currentPage,
-      users.totalPage,
-      users.recordPerPage,
-      users.totalRecord
+      data.currentPage,
+      data.totalPage,
+      data.recordPerPage,
+      data.totalRecord
     );
   } catch (error) {
+    console.log(error);
     standardResponse(res, 500, null, "Fail to fetch users api");
   }
 };

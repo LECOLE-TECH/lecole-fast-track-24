@@ -50,7 +50,8 @@ export const login = async (req, res) => {
               username: existingUser.username,
               roles: existingUser.roles,
             },
-            process.env.JWT_SECRET
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
           );
 
           req.session.loggedin = true;
