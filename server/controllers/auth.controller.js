@@ -56,6 +56,13 @@ export const login = async (req, res) => {
 
           req.session.loggedin = true;
           req.session.user = existingUser;
+
+          res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "strict",
+            maxAge: 3600000, // 1 hour
+          });
           standardResponse(res, 200, { accessToken }, "Login successfully");
         } else {
           standardResponse(res, 401, null, "Incorrect password");
