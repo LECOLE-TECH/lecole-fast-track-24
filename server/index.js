@@ -10,17 +10,23 @@ const app = express();
 const port = 3000;
 
 const server = http.createServer(app);
-const io = new Server(server);
-
-app.use(cors({ origin: "http://localhost:5173" }));
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 });
+
+// Use cors middleware with more specific options
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -29,6 +35,11 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
+    cookie: {
+      secure: true,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    },
   })
 );
 

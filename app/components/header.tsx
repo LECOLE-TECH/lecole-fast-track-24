@@ -81,6 +81,12 @@ export default function Header() {
     },
   });
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    formik.resetForm();
+    setLoginError(null);
+  };
+
   return (
     <div>
       <motion.header
@@ -94,7 +100,7 @@ export default function Header() {
         <div className='container mx-auto px-4'>
           <div className='flex justify-between items-center py-4'>
             <Link
-              to={"/track-one"}
+              to={"/track-two"}
               className='text-2xl font-bold text-blue-600 hover:text-yellow-400 transition-colors duration-300 flex items-center'
             >
               <motion.svg
@@ -227,10 +233,7 @@ export default function Header() {
 
       <LoginModal
         isOpen={isModalOpen}
-        onClose={() => {
-          formik.resetForm();
-          setIsMenuOpen(false);
-        }}
+        onClose={handleCloseModal}
         formik={formik}
       />
       {loginError && <div className='text-red-500 mt-2'>{loginError}</div>}

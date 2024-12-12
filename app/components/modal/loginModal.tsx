@@ -27,6 +27,7 @@ export default function LoginModal({
         <div
           className='fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity'
           aria-hidden='true'
+          onClick={onClose}
         ></div>
         <span
           className='hidden sm:inline-block sm:align-middle sm:h-screen'
@@ -47,15 +48,15 @@ export default function LoginModal({
                 <form onSubmit={formik.handleSubmit} className='space-y-6'>
                   <div>
                     <label
-                      htmlFor='name'
+                      htmlFor='username'
                       className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
                     >
                       Username
                     </label>
                     <input
                       type='text'
-                      name='name'
-                      id='name'
+                      name='username'
+                      id='username'
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       value={formik.values.username}
@@ -69,10 +70,10 @@ export default function LoginModal({
                   </div>
                   <div>
                     <label
-                      htmlFor='name'
+                      htmlFor='secret_phrase'
                       className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'
                     >
-                      Secret_phrase
+                      Secret Phrase
                     </label>
                     <input
                       type='password'
@@ -94,7 +95,7 @@ export default function LoginModal({
                     <button
                       type='submit'
                       disabled={formik.isSubmitting}
-                      className='w-full sm:w-auto px-6 py-3 rounded-full bg-blue-600 text-white font-medium text-base hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg'
+                      className='w-full sm:w-auto px-6 py-3 rounded-full bg-blue-600 text-white font-medium text-base hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg disabled:opacity-50'
                     >
                       {formik.isSubmitting ? "Logging in..." : "Submit"}
                     </button>
