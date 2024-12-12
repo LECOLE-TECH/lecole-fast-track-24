@@ -35,7 +35,7 @@ export const getUserByUsername = async (username: string): Promise<User> => {
 
 export const updateSecretPhrase = async (
   id: string,
-  new_secret_phrase: string
+  newValueSecret: object
 ): Promise<User> => {
   try {
     const response = await fetch(`${baseUrl}/${id}`, {
@@ -44,7 +44,7 @@ export const updateSecretPhrase = async (
         "Content-Type": "application/json",
         Authorization: `Bearer ${getAccessToken()}`,
       },
-      body: JSON.stringify({ new_secret_phrase }),
+      body: JSON.stringify(newValueSecret),
       credentials: "include",
     });
     if (!response.ok) {

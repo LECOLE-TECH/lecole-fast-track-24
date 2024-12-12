@@ -1,7 +1,7 @@
 import type { User } from "~/types/user";
 
 interface UserTableProps {
-  users: User[];
+  users: User[] | [];
   onUpdate: (user: User) => void;
   onOpen: (user: User) => void;
   currentPage: number;
@@ -42,7 +42,7 @@ export default function UserTable({
                 className='hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors duration-150 ease-in-out'
               >
                 <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300'>
-                  {user.user_id}
+                  {user.ord}
                 </td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white'>
                   {user.username}
