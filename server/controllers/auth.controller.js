@@ -75,3 +75,10 @@ export const login = async (req, res) => {
     standardResponse(res, 400, null, "Please enter your incredential");
   }
 };
+
+export const logout = async (req, res) => {
+  req.session.destroy((err) => {
+    if (err) standardResponse(res, 400, null, "Logout failed");
+    standardResponse(res, 200, null, "Bye");
+  });
+};

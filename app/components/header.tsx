@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import LoginModal from "./modal/loginModal";
-import { login } from "~/apis/authApi";
+import { login, logout } from "~/apis/authApi";
+import { useUser } from "~/contexts/userContext";
 
 const pages = [
   { name: "Home", path: "/track-two" },
@@ -23,6 +24,8 @@ export default function Header() {
   const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const { user, setUser } = useUser();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -58,6 +61,10 @@ export default function Header() {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -66,7 +73,14 @@ export default function Header() {
     validationSchema: validationSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
-        await login(values);
+        const response = await login(values);
+        setUser({
+          user_id: response?.user_id as string,
+          username: response?.username as string,
+          roles: response?.roles as string,
+          ord: "",
+          secret_phrase: "",
+        });
         setIsModalOpen(false);
         resetForm();
       } catch (error) {
@@ -80,6 +94,15 @@ export default function Header() {
       }
     },
   });
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUser(null);
+    } catch (error) {
+      console.error("Log out failed: ", error);
+    }
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -142,15 +165,52 @@ export default function Header() {
               ))}
             </nav>
 
-            {/* Login Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className='hidden md:block bg-yellow-400 text-blue-800 px-4 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md'
-              onClick={() => setIsModalOpen(true)}
-            >
-              Login
-            </motion.button>
+            {/* Login Button or User dropdown */}
+            {user ? (
+              <div className='relative'>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className='hidden md:flex items-center bg-yellow-400 text-blue-800 px-4 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md'
+                  onClick={toggleDropdown}
+                >
+                  {user.username}
+                  <svg
+                    className='w-4 h-4 ml-2'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth='2'
+                      d='M19 9l-7 7-7-7'
+                    ></path>
+                  </svg>
+                </motion.button>
+                {isDropdownOpen && (
+                  <div className='absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1'>
+                    <button
+                      onClick={handleLogout}
+                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left'
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className='hidden md:block bg-yellow-400 text-blue-800 px-4 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md'
+                onClick={() => setIsModalOpen(true)}
+              >
+                Login
+              </motion.button>
+            )}
 
             {/* Mobile Menu Button */}
             <div className='md:hidden'>
@@ -217,14 +277,23 @@ export default function Header() {
                     {page.name}
                   </Link>
                 ))}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className='w-full mt-2 bg-yellow-400 text-blue-800 px-3 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md'
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  Login
-                </motion.button>
+                {user ? (
+                  <button
+                    onClick={handleLogout}
+                    className='w-full mt-2 bg-yellow-400 text-blue-800 px-3 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md text-left'
+                  >
+                    Logout ({user.username})
+                  </button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className='w-full mt-2 bg-yellow-400 text-blue-800 px-3 py-2 rounded-md hover:bg-yellow-300 transition-colors duration-300 shadow-md'
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Login
+                  </motion.button>
+                )}
               </div>
             </motion.div>
           )}

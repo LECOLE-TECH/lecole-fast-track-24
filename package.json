@@ -24,6 +24,7 @@
     "framer-motion": "^11.14.0",
     "isbot": "^5.1.17",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.468.0",
     "prisma": "^6.0.1",
     "react": "^18.3.1",
