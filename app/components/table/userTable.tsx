@@ -51,7 +51,7 @@ export default function UserTable({
                   {user.secret_phrase}
                 </td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300'>
-                  ${user.roles}
+                  {user.roles}
                 </td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
                   <button
