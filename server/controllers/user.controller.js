@@ -75,9 +75,9 @@ export const updateSecretPhrase = async (req, res) => {
     if (data == "User not found") {
       standardResponse(res, 404, null, data);
     } else if (data == "You do not have right to edit this secret phrase") {
-      standardResponse(res, 401, null, data);
+      standardResponse(res, 403, null, data);
     }
-    standardResponse(res, 201, data, "Update secret phrase successfully");
+    standardResponse(res, 200, data, "Update secret phrase successfully");
   } catch (error) {
     standardResponse(res, 500, null, "Fail to update secret phrase api");
   }
