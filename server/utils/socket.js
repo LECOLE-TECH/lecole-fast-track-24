@@ -6,11 +6,11 @@ export default function handleSocket(io) {
 
     socket.on("update-secret-phrase", async (data) => {
       try {
-        const { id, newSecretePhrase, editor } = data;
+        const { id, newSecretPhrase, editor } = data;
         if (editor.roles === "admin" || editor.user_id == id) {
           const resData = await updateUserSecretPhrase(
             id,
-            newSecretePhrase,
+            newSecretPhrase,
             editor
           );
 

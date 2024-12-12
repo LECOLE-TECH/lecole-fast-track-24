@@ -77,6 +77,7 @@ export default function UserList() {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         if (selectedUser) {
+          console.log(JSON.stringify(values));
           socket.emit("update-secret-phrase", {
             id: selectedUser.user_id,
             newSecretPhrase: values.new_secret_phrase,

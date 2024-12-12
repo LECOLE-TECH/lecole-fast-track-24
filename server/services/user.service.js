@@ -56,6 +56,9 @@ export const createUser = async (newUser) => {
 };
 
 export const updateUserSecretPhrase = async (id, newSecret, editor) => {
+  console.log(`id la: ${id}`);
+  console.log(`newSecret la: ${newSecret}`);
+  console.log(`editor la: ${JSON.stringify(editor)}`);
   try {
     if (
       editor === undefined ||
