@@ -32,7 +32,7 @@ VITE_API_BASE_URL="http://localhost:3000"
 
 SECRET_KEY="your_secret_key"
 
-ALGORITHM="your_agorithm"
+ALGORITHM="aes-256-cbc"
 
 JWT_SECRET="your_jwt_secret"
 SESSION_SECRET="your_session_secret"
