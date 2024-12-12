@@ -18,3 +18,16 @@ export const getUsers = async (
     throw error;
   }
 };
+
+export const getUserByUsername = async (username: string): Promise<User> => {
+  try {
+    const response = await fetch(`${baseUrl}/${username}`);
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw error;
+  }
+};
