@@ -54,3 +54,32 @@ export const createUser = async (newUser) => {
     throw new Error("Failed to add product");
   }
 };
+
+export const updateUserSecretPhrase = async (id, newSecret, editor) => {
+  try {
+    if (
+      editor === undefined ||
+      (editor.roles == "user" && editor.user_id !== id)
+    ) {
+      return "You do not have right to edit this secret phrase";
+    }
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        user_id: id,
+      },
+    });
+    if (!existingUser) {
+      return "User not found";
+    }
+    return await prisma.user.update({
+      where: {
+        user_id: id,
+      },
+      data: {
+        secret_phrase: encryptPassword(newSecret),
+      },
+    });
+  } catch (error) {
+    throw new Error("Failed to update secret");
+  }
+};

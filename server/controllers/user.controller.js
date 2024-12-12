@@ -5,6 +5,7 @@ import {
 import {
   getPaginationUsers,
   getUserByUsername,
+  updateUserSecretPhrase,
 } from "../services/user.service.js";
 
 export const getAll = async (req, res) => {
@@ -38,7 +39,6 @@ export const getAll = async (req, res) => {
       data.totalRecord
     );
   } catch (error) {
-    console.log(error);
     standardResponse(res, 500, null, "Fail to fetch users api");
   }
 };
@@ -63,5 +63,22 @@ export const getByUsername = async (req, res) => {
     );
   } catch (error) {
     standardResponse(res, 500, null, "Fail to fetch user api");
+  }
+};
+
+export const updateSecretPhrase = async (req, res) => {
+  const { id } = req.params;
+  const { new_secret_phrase } = req.body;
+  const editor = req.user;
+  try {
+    const data = await updateUserSecretPhrase(id, new_secret_phrase, editor);
+    if (data == "User not found") {
+      standardResponse(res, 404, null, data);
+    } else if (data == "You do not have right to edit this secret phrase") {
+      standardResponse(res, 401, null, data);
+    }
+    standardResponse(res, 201, data, "Update secret phrase successfully");
+  } catch (error) {
+    standardResponse(res, 500, null, "Fail to update secret phrase api");
   }
 };

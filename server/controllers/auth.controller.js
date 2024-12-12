@@ -56,13 +56,12 @@ export const login = async (req, res) => {
 
           req.session.loggedin = true;
           req.session.user = existingUser;
-          standardResponse(res, 200, accessToken, "Login successfully");
+          standardResponse(res, 200, { accessToken }, "Login successfully");
         } else {
           standardResponse(res, 401, null, "Incorrect password");
         }
       }
     } catch (error) {
-      console.log(error);
       standardResponse(res, 500, null, "Fail to login users api");
     }
   } else {
