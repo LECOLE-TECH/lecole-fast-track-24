@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getUsers, updateSecretPhrase } from "~/apis/userApi";
 import type { User } from "~/types/user";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import UserTable from "./table/userTable";
 import { useUser } from "~/contexts/userContext";
+import socket from "~/utils/socket";
+import UpdateSecretModal from "./modal/updateSecretModal";
 
 const validationSchema = Yup.object({
   new_secret_phrase: Yup.string()
@@ -25,25 +27,38 @@ export default function UserList() {
   const [totalPages, setTotalPages] = useState(1);
   const { user } = useUser();
 
-  const fetchUsers = async (page: number) => {
+  const fetchUsers = useCallback(async (page: number) => {
     try {
       const response = await getUsers(page);
-      const processedUser = response.data.map((user, index) => ({
+      const processedUsers = response.data.map((user, index) => ({
         ...user,
         ord: index + 1,
       }));
-      setUsers(processedUser);
+      setUsers(processedUsers);
       setCurrentPage(response.currentPage);
       setTotalPages(response.totalPage);
     } catch (error) {
       console.error("Failed to fetch users: ", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    console.log("checkin");
     fetchUsers(currentPage);
-  }, [currentPage, user]);
+  }, [currentPage, user, fetchUsers]);
+
+  useEffect(() => {
+    socket.on("secret-phrase-updated", (updatedUser) => {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.user_id === updatedUser.user_id ? { ...u, ...updatedUser } : u
+        )
+      );
+    });
+
+    return () => {
+      socket.off("secret-phrase-updated");
+    };
+  }, []);
 
   const handleUpdateSecret = (user: User) => {
     setSelectedUser(user);
@@ -62,9 +77,12 @@ export default function UserList() {
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       try {
         if (selectedUser) {
-          await updateSecretPhrase(selectedUser.user_id, values);
+          socket.emit("update-secret-phrase", {
+            id: selectedUser.user_id,
+            newSecretPhrase: values.new_secret_phrase,
+            editor: user,
+          });
         }
-        await fetchUsers(currentPage);
         setIsModalOpen(false);
         resetForm();
       } catch (error) {
@@ -88,6 +106,13 @@ export default function UserList() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+          currentUser={user}
+        />
+        <UpdateSecretModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          formik={formik}
+          selectedUser={selectedUser}
         />
       </div>
     </div>

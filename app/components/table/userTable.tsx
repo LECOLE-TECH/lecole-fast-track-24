@@ -7,6 +7,7 @@ interface UserTableProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  currentUser: User | null;
 }
 
 export default function UserTable({
@@ -16,23 +17,32 @@ export default function UserTable({
   currentPage,
   totalPages,
   onPageChange,
+  currentUser,
 }: UserTableProps) {
+  const isAdmin = currentUser?.roles === "admin";
+  const isAuthenticated = !!currentUser;
+
+  const headers = ["ID", "Username"];
+  if (isAuthenticated) headers.push("Roles");
+  if (isAdmin) {
+    headers.push("Secret phrase");
+  }
+  headers.push("Actions");
+
   return (
     <div className='bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-indigo-900 shadow-lg rounded-3xl overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl'>
       <div className='overflow-x-auto'>
         <table className='min-w-full divide-y divide-blue-200 dark:divide-blue-700'>
           <thead className='bg-blue-100 dark:bg-blue-900'>
             <tr>
-              {["ID", "Username", "Secret phrase", "Roles", "Actions"].map(
-                (header) => (
-                  <th
-                    key={header}
-                    className='px-6 py-4 text-left text-xs font-semibold text-blue-600 dark:text-blue-300 uppercase tracking-wider'
-                  >
-                    {header}
-                  </th>
-                )
-              )}
+              {headers.map((header) => (
+                <th
+                  key={header}
+                  className='px-6 py-4 text-left text-xs font-semibold text-blue-600 dark:text-blue-300 uppercase tracking-wider'
+                >
+                  {header}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className='bg-white dark:bg-gray-800 divide-y divide-blue-100 dark:divide-blue-700'>
@@ -47,25 +57,33 @@ export default function UserTable({
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white'>
                   {user.username}
                 </td>
-                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300'>
-                  {user.secret_phrase}
-                </td>
-                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300'>
-                  {user.roles}
-                </td>
+                {isAuthenticated && (
+                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300'>
+                    {user.roles}
+                  </td>
+                )}
+                {isAdmin && (
+                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300'>
+                    {user.secret_phrase}
+                  </td>
+                )}
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
-                  <button
-                    onClick={() => onUpdate(user)}
-                    className='text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 mr-2 transition-colors duration-150 ease-in-out'
-                  >
-                    Update secret
-                  </button>
-                  <button
-                    onClick={() => onOpen(user)}
-                    className='text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200 transition-colors duration-150 ease-in-out'
-                  >
-                    View secret
-                  </button>
+                  {(isAdmin || currentUser?.user_id === user.user_id) && (
+                    <button
+                      onClick={() => onUpdate(user)}
+                      className='text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 mr-2 transition-colors duration-150 ease-in-out'
+                    >
+                      Update secret
+                    </button>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={() => onOpen(user)}
+                      className='text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200 transition-colors duration-150 ease-in-out'
+                    >
+                      View secret
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
