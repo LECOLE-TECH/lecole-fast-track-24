@@ -50,30 +50,3 @@ node prisma/seed.js
 ```bash
 yarn dev:server
 ```
-
-# Available API Endpoints
-
-## Get All Users
-- Endpoint: /api/user
-- Method: GET
-- Description: Fetch all users from the database.
-
-## Get User By ID
-- Endpoint: /api/user/{id}
-- Method: GET
-- Description: Fetch user by id from the database.
-
-## Create User
-- Endpoint: /api/user
-- Method: POST
-- Description: Add a new user to the database.
-
-## Update User
-- Endpoint: /api/user/{id}
-- Method: PATCH
-- Description: Update user information from the database.
-
-## Delete Product
-- Endpoint: /api/user/{id}
-- Method: DELETE
-- Description: Delete user from the database.
