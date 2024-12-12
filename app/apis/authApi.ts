@@ -2,7 +2,7 @@ import type { User } from "~/types/user";
 
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
 
-export const login = async (user: Omit<User, "user_id" | "roles">) => {
+export const login = async (user: Omit<User, "user_id" | "roles" | "ord">) => {
   try {
     const response = await fetch(`${baseUrl}/login`, {
       method: "POST",
