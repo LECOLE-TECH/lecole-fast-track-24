@@ -140,6 +140,7 @@ app.post("/api/todos/sync", (req, res) => {
       todos.forEach(todo => {
         console.log(todo)
         if (todo.isAdded===1) {
+
           // Insert new todo
           db.run(
             "INSERT INTO todos (title, status) VALUES (?, ?)",
@@ -155,6 +156,7 @@ app.post("/api/todos/sync", (req, res) => {
         }
         if(todo.isDeleted===1){
           db.run("DELETE FROM todos WHERE id = ?", todo.id)
+
         }
       });
 
