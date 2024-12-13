@@ -51,6 +51,20 @@ class TodosController {
       standardResponse(res, 500, null, "Fail to udpate todo api");
     }
   }
+
+  async syncMultiTodo(req, res) {
+    try {
+      const { todos } = req.body;
+      if (!Array.isArray(todos)) {
+        return standardResponse(res, 400, null, "Invalid sync data");
+      }
+      const syncedTodos = await todosService.syncMultiTodo(todos);
+      standardResponse(res, 201, syncedTodos, "Sync success");
+    } catch (error) {
+      console.log(error);
+      standardResponse(res, 500, null, "Fail to sync todos api");
+    }
+  }
 }
 
 export default new TodosController();

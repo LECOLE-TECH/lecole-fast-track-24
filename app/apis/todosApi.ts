@@ -79,26 +79,23 @@ export const deleteTodo = async (id: number): Promise<boolean> => {
   }
 };
 
-// export const updateSecretPhrase = async (
-//   id: string,
-//   newValueSecret: object
-// ): Promise<User> => {
-//   try {
-//     const response = await fetch(`${baseUrl}/${id}`, {
-//       method: "PATCH",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${getAccessToken()}`,
-//       },
-//       body: JSON.stringify(newValueSecret),
-//       credentials: "include",
-//     });
-//     if (!response.ok) {
-//       throw new Error("Network response was not ok");
-//     }
-//     return await response.json();
-//   } catch (error) {
-//     console.error("Error updating secret phrase: ", error);
-//     throw error;
-//   }
-// };
+export const syncTodos = async (todos: any): Promise<Todo[]> => {
+  try {
+    const response = await fetch(`${baseUrl}/sync`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(todos),
+      credentials: "same-origin",
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error("Error sync todos: ", error);
+    throw error;
+  }
+};

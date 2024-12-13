@@ -145,7 +145,7 @@ class TodosService {
 
           this.db.run("COMMIT", [], (err) => {
             if (err) {
-              res.status(500).json({ error: err.message });
+              reject(err);
               return;
             }
 
@@ -156,6 +156,7 @@ class TodosService {
               (err, rows) => {
                 if (err) {
                   reject(err);
+                  return;
                 }
                 resolve(rows);
               }
