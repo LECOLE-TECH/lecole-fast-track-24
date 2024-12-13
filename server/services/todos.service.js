@@ -65,14 +65,24 @@ class TodosService {
 
   async createTodo(title, status) {
     return new Promise((resolve, reject) => {
+      const self = this;
       this.db.run(
         "INSERT INTO todos (title, status) VALUES (?, ?)",
         [title, status],
         function (err) {
           if (err) {
             reject(err);
+          } else {
+            const lastID = this.lastID;
+            self.db.get(
+              "SELECT * FROM todos WHERE id = ?",
+              [lastID],
+              (err, row) => {
+                if (err) reject(err);
+                resolve(row);
+              }
+            );
           }
-          resolve();
         }
       );
     });

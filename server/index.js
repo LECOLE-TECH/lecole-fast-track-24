@@ -20,87 +20,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// const db = new sqlite3.Database("./database/todos.db", (err) => {
-//   if (err) {
-//     console.error("Error opening database:", err);
-//   } else {
-//     console.log("Connected to the SQLite database.");
-//   }
-// });
-
-// // Create todos table
-// db.serialize(() => {
-//   db.run(`
-//     CREATE TABLE IF NOT EXISTS todos (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       title TEXT NOT NULL,
-//       status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
-//       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-//     )
-//   `);
-// });
-
-// // Seed some initial todos if the table is empty
-// const seedTodos = [
-//   { title: "Learn React", status: "done" },
-//   { title: "Build a Todo App", status: "in_progress" },
-//   { title: "Master TypeScript", status: "backlog" },
-// ];
-
-// db.get("SELECT COUNT(*) as count FROM todos", (err, row) => {
-//   if (row?.count === 0) {
-//     const stmt = db.prepare("INSERT INTO todos (title, status) VALUES (?, ?)");
-//     seedTodos.forEach(todo => {
-//       stmt.run(todo.title, todo.status);
-//     });
-//     stmt.finalize();
-//     console.log("Database seeded with initial todos");
-//   }
-// });
-
 app.use(express.json());
 funcTodoRoute(app);
-
-// // Get all todos
-// app.get("/api/todos", (req, res) => {
-//   db.all("SELECT * FROM todos ORDER BY created_at DESC", [], (err, rows) => {
-//     if (err) {
-//       res.status(500).json({ error: err.message });
-//       return;
-//     }
-//     res.json(rows);
-//   });
-// });
-
-// // Create new todo
-// app.post("/api/todos", (req, res) => {
-//   const { title, status = 'backlog' } = req.body;
-
-//   if (!title) {
-//     return res.status(400).json({ error: "Title is required" });
-//   }
-
-//   db.run(
-//     "INSERT INTO todos (title, status) VALUES (?, ?)",
-//     [title, status],
-//     function(err) {
-//       if (err) {
-//         return res.status(500).json({ error: err.message });
-//       }
-
-//       db.get(
-//         "SELECT * FROM todos WHERE id = ?",
-//         [this.lastID],
-//         (err, row) => {
-//           if (err) {
-//             return res.status(500).json({ error: err.message });
-//           }
-//           res.status(201).json(row);
-//         }
-//       );
-//     }
-//   );
-// });
 
 // // Update todo status
 // app.put("/api/todos/:id", (req, res) => {
