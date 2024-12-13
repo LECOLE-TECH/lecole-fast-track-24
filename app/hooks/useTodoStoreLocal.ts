@@ -29,7 +29,7 @@ export const useTodoStoreLocal = create<TodoStoreLocal>()(
     (set, get) => ({
       todos: [],
       syncStatus: false,
-      isOnline: useDetectNetwork().isOnline,
+      isOnline: true,
       error: null,
       db: null,
 
