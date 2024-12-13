@@ -37,6 +37,20 @@ class TodosController {
       standardResponse(res, 500, null, "Fail to udpate todo api");
     }
   }
+
+  async remove(req, res) {
+    try {
+      const { id } = req.params;
+      const deletedTodo = await todosService.deleteTodo(Number(id));
+      if (deletedTodo === "Todo not found") {
+        return standardResponse(res, 404, null, deletedTodo);
+      }
+      return standardResponse(res, 200, null, deletedTodo);
+    } catch (error) {
+      console.log(error);
+      standardResponse(res, 500, null, "Fail to udpate todo api");
+    }
+  }
 }
 
 export default new TodosController();

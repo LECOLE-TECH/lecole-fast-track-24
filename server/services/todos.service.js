@@ -112,7 +112,10 @@ class TodosService {
         if (err) {
           reject(err);
         }
-        resolve();
+        if (this.changes === 0) {
+          return resolve("Todo not found");
+        }
+        resolve("Todo deleted success");
       });
     });
   }

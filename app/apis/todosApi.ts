@@ -63,6 +63,22 @@ export const updateTodo = async (
   }
 };
 
+export const deleteTodo = async (id: number): Promise<boolean> => {
+  try {
+    const response = await fetch(`${baseUrl}/${id}`, {
+      method: "DELETE",
+      credentials: "same-origin",
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting todo: ", error);
+    throw error;
+  }
+};
+
 // export const updateSecretPhrase = async (
 //   id: string,
 //   newValueSecret: object

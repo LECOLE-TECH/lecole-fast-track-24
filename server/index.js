@@ -23,30 +23,6 @@ app.use((req, res, next) => {
 app.use(express.json());
 funcTodoRoute(app);
 
-// // Update todo status
-// app.put("/api/todos/:id", (req, res) => {
-//   const { id } = req.params;
-//   const { status } = req.body;
-
-//   if (!status || !['backlog', 'in_progress', 'done'].includes(status)) {
-//     return res.status(400).json({ error: "Valid status is required" });
-//   }
-
-//   db.run(
-//     "UPDATE todos SET status = ? WHERE id = ?",
-//     [status, id],
-//     function(err) {
-//       if (err) {
-//         return res.status(500).json({ error: err.message });
-//       }
-//       if (this.changes === 0) {
-//         return res.status(404).json({ error: "Todo not found" });
-//       }
-//       res.json({ id, status });
-//     }
-//   );
-// });
-
 // // Sync endpoint to handle multiple todos
 // app.post("/api/todos/sync", (req, res) => {
 //   const { todos } = req.body;
