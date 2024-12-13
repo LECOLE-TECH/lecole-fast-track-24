@@ -3,14 +3,12 @@ import { Button } from "~/components/ui/button";
 import { useEffect, useState } from "react";
 import { syncTodos } from "~/apis/todosApi";
 import type { Todo, TodoLocal } from "~/types/todos";
-import { useTodoStoreLocal } from "~/hooks/useTodoStoreLocal";
-import useDetectNetwork from "~/hooks/useDetectNetwork";
 import TodoColumn from "~/components/todoColumns";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import socket from "~/utils/socket";
-import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const columns: { id: Todo["status"]; title: string }[] = [
   { id: "backlog", title: "Backlog" },
@@ -27,14 +25,25 @@ export default function TrackThree() {
   const [error, setError] = useState<string>("");
   const [localDb, setLocalDb] = useState<any>(null);
   const [newTodoTitle, setNewTodoTitle] = useState("");
-  const { isOnline } = useDetectNetwork();
-  const setIsOnline = useTodoStoreLocal((state) => state.setIsOnline);
+  const [isOnline, setIsOnline] = useState(true);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   useEffect(() => {
-    setIsOnline(isOnline);
-  }, [isOnline, setIsOnline]);
+    const onConnect = () => {
+      setIsSocketConnected(true);
+      setIsOnline(true);
+      toast.success("Connected to server");
+    };
 
-  useEffect(() => {
+    const onDisconnect = () => {
+      setIsSocketConnected(false);
+      setIsOnline(false);
+      toast.error("Disconnected from server");
+    };
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
     socket.on("user-connect-server", (data) => {
       toast.success(data.message);
     });
@@ -42,7 +51,14 @@ export default function TrackThree() {
     socket.on("user-disconnect-server", (data) => {
       toast.error(data.message);
     });
-  }, []);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("user-connect-server");
+      socket.off("user-disconnect-server");
+    };
+  }, [setIsOnline]);
 
   // Initialize local SQLite database
   useEffect(() => {
@@ -207,10 +223,10 @@ export default function TrackThree() {
             <h1 className='text-2xl font-bold'>Todo App</h1>
             <div
               className={`px-2 py-1 rounded ${
-                isOnline ? "bg-green-500" : "bg-yellow-500"
+                isSocketConnected ? "bg-green-500" : "bg-red-500"
               }`}
             >
-              {isOnline ? "Online" : "Offline"}
+              {isSocketConnected ? "Online" : "Offline"}
             </div>
             <Button onClick={syncWithBackend}>Sync Now</Button>
           </div>
