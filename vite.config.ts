@@ -17,5 +17,14 @@ export default defineConfig({
     alias: {
       "~": path.resolve(__dirname, "./app")
     }
+  },
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp"
+    }
+  },
+  optimizeDeps: {
+    exclude: ["@sqlite.org/sqlite-wasm"]
   }
 })
