@@ -9,11 +9,11 @@ export class ErrorResponse extends Error {
 export class SuccessResponse {
   constructor(message, statusCode, data) {
     this.message = message
-    this.statusCode = statusCode
+    this.status = statusCode
     this.data = { ...data }
   }
 
   send(res) {
-    res.status(this.statusCode).json(this)
+    res.status(this.status).json(this)
   }
 }

@@ -2,67 +2,53 @@ import { useEffect, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 import Loading from "~/components/loading"
 import Table from "~/components/table"
-import { useDeleteProduct } from "~/hooks/products/useDeleteProduct.hook"
-import { useGetProducts } from "~/hooks/products/useGetProducts.hook"
 import useDebounce from "~/hooks/useDebounce"
+import { RegisterUser, SecretUser } from "~/utils/schema"
+import { toast } from "react-toastify"
+import { ActionSheet } from "~/types/interface"
+import { useGetUsers } from "~/hooks/users/useGetUsers.hook"
+import { useStore } from "~/store"
+import { useSocket } from "~/hooks/useSocket"
+import { decryptMessage, encryptMessage } from "~/utils/cryptography"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle
 } from "~/components/ui/sheet"
-import { CreateProductForm } from "./create-product-form"
-import { EditProductForm } from "./edit-product-form"
-import { useInsertProduct } from "~/hooks/products/useCreateProduct.hook"
-import { InsertProduct } from "~/utils/schema"
-import { toast } from "react-toastify"
-import { Product } from "~/types/products.types"
-import { useEditProduct } from "~/hooks/products/useEditProduct.hook"
-import { ActionSheet } from "~/types/interface"
+import { RegisterForm } from "./register-form"
+import { SecretForm } from "./secret-form"
+import { User } from "~/types/users.types"
+import { useQueryClient } from "@tanstack/react-query"
 
-const columnsTitle = [
-  "name",
-  "description",
-  "image",
-  "price",
-  "stock",
-  "category",
-  "brand"
-]
-const textConfirm = "Are you sure you want to delete this product?"
+const columnsTitle = ["avatar", "username", "role", "secret"]
+const textConfirm = "Are you sure you want to delete this user?"
 
-const Products = () => {
+const Users = () => {
   const [searchParams] = useSearchParams()
   const params = Object.fromEntries(searchParams.entries())
-  const { mutate: deleteProduct } = useDeleteProduct()
-  const { mutate: insertProduct } = useInsertProduct()
-  const { mutate: editProduct } = useEditProduct()
+  const { socket } = useSocket()
   const [page, setPage] = useState(params.page ? parseInt(params.page) : 1)
   const [limit, setLimit] = useState(parseInt(params.limit) || 10)
   const [search, setSearch] = useState(params.search || "")
-  const [productEdit, setProductEdit] = useState<Product | null>(null)
+  const [userEdit, setUserEdit] = useState<User | null>(null)
   const debouncedInputValue = useDebounce(search, 300)
   const [actionSheet, setActionSheet] = useState<ActionSheet>(
     ActionSheet.DEFAULT
-  ) // 0: default 1: add, 2: edit
+  )
   const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const { data, isLoading } = useGetProducts(page, limit, debouncedInputValue)
+  const { data, isLoading } = useGetUsers(page, limit, debouncedInputValue)
+  const user = useStore((state) => state.user)
 
-  const handleDelete = (ids: number[]) => {
-    deleteProduct(ids)
-  }
-
-  const handleEdit = (data: Product) => {
-    editProduct(data)
-    setActionSheet(0)
-    toast.success("Product has been updated successfully")
-  }
-
-  const handleInsert = (data: InsertProduct) => {
-    insertProduct(data)
-    setActionSheet(0)
-    toast.success("Product has been added successfully")
+  const handleInsert = (user: RegisterUser) => {
+    if (socket) {
+      const encryptedData = encryptMessage(user)
+      socket.emit("create-user", encryptedData)
+      toast.success("User has been created successfully")
+      setActionSheet(ActionSheet.DEFAULT)
+    }
   }
 
   const handleSearch = (searchValue: string) => {
@@ -111,15 +97,79 @@ const Products = () => {
     }
   }
 
+  const handleDelete = (ids: number[]) => {
+    const payload = {
+      ids
+    }
+    if (socket) {
+      const encryptedData = encryptMessage(payload)
+      socket.emit("delete-user", encryptedData)
+      toast.success("User has been deleted successfully")
+      setActionSheet(ActionSheet.DEFAULT)
+      data!.data.items = data!.data.items.filter((i) => !ids.includes(i.id))
+      queryClient.invalidateQueries({
+        queryKey: ["users", { page, limit, search }]
+      })
+    }
+  }
+
+  const handleUpdateUser = ({ secret }: SecretUser) => {
+    const payload = {
+      id: userEdit?.id!,
+      secret
+    }
+    if (socket) {
+      const encryptedData = encryptMessage(payload)
+      socket.emit("update-user", encryptedData)
+      toast.success("Secret has been updated successfully")
+      setActionSheet(ActionSheet.DEFAULT)
+
+      data!.data.items.map((item) => {
+        if (item.id === userEdit?.id) {
+          item.secret = secret
+        }
+        return item
+      })
+    }
+  }
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("update-user-response", (_: string) => {
+        setSelectedIds([])
+      })
+
+      socket.on("create-user-response", (response: string) => {
+        const decryptedData = decryptMessage(response) as User
+        data!.data.items.unshift(decryptedData)
+        setSelectedIds([])
+      })
+
+      socket.on("delete-user-response", (_: string) => {
+        setSelectedIds([])
+      })
+    }
+
+    return () => {
+      socket?.off("update-user-response")
+    }
+  }, [socket])
+
   useEffect(() => {
     setSelectedIds([])
   }, [data])
 
-  if (isLoading) return <Loading />
+  if (isLoading)
+    return (
+      <div className="w-full my-10">
+        <Loading />
+      </div>
+    )
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full my-10 px-4">
       <Table
+        id={user?.id}
         columnsTitle={columnsTitle}
         textConfirm={textConfirm}
         totalPages={data?.data.totalPages || 1}
@@ -128,14 +178,16 @@ const Products = () => {
         dataRow={data?.data.items || []}
         searchValue={search}
         limit={limit}
+        showCheckbox={user?.role == "admin" ? true : false}
+        showAction={user?.role == "admin" ? true : false}
         selectedIds={selectedIds}
         onChangeLimit={handleChangeLimit}
         onSelectedItem={handleSelectItem}
         onSelectAllItem={handleSelectAllItem}
         onActionSheet={setActionSheet}
-        onDelete={handleDelete}
-        onUpdate={(data) => setProductEdit(data as Product)}
+        onUpdate={(data) => setUserEdit(data as User)}
         onChangePage={handleChangePage}
+        onDelete={handleDelete}
         onSearch={handleSearch}
       />
 
@@ -148,16 +200,19 @@ const Products = () => {
             <SheetHeader>
               <SheetTitle>
                 {actionSheet === ActionSheet.INSERT
-                  ? "Insert New Product"
-                  : "Edit Product"}
+                  ? "Insert New User"
+                  : "Change Secret User"}
               </SheetTitle>
             </SheetHeader>
             <div className="mt-8">
               {actionSheet === ActionSheet.INSERT && (
-                <CreateProductForm onInsert={handleInsert} />
+                <RegisterForm onRegister={handleInsert} />
               )}
               {actionSheet === ActionSheet.EDIT && (
-                <EditProductForm onEdit={handleEdit} product={productEdit!} />
+                <SecretForm
+                  onChangeSecret={handleUpdateUser}
+                  currentSecret={userEdit?.secret!}
+                />
               )}
             </div>
           </SheetContent>
@@ -167,4 +222,4 @@ const Products = () => {
   )
 }
 
-export default Products
+export default Users

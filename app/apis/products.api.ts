@@ -6,9 +6,12 @@ import { InsertProduct } from "~/utils/schema"
 
 export const getProductsAPI = async (
   page = 1,
+  limit = 10,
   search: string = ""
 ): Promise<AxiosResponse<ResponseList<Product>, any>> => {
-  return await AxiosInstance.get(`/products?&page=${page}&search=${search}`)
+  return await AxiosInstance.get(
+    `/products?&page=${page}&limit=${limit}&search=${search}`
+  )
 }
 
 export const deleteProductsAPI = async (

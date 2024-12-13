@@ -4,13 +4,15 @@ const TrackCard = ({
   requirements,
   features
 }: {
-  title: string;
-  description: string;
-  requirements?: string[];
-  features?: string[];
+  title: string
+  description: string
+  requirements?: string[]
+  features?: string[]
 }) => (
   <div className="rounded-3xl border border-gray-200 p-6 dark:border-gray-700 space-y-4">
-    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 text-center mb-4">{title}</h2>
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 text-center mb-4">
+      {title}
+    </h2>
     <div className="space-y-4 text-gray-700 dark:text-gray-200">
       <p className="leading-6">{description}</p>
       {requirements && (
@@ -35,11 +37,17 @@ const TrackCard = ({
       )}
     </div>
   </div>
-);
+)
 
-const Navigation = ({ resources }: { resources: Array<{ href: string; text: string; icon: React.ReactNode }> }) => (
+const Navigation = ({
+  resources
+}: {
+  resources: Array<{ href: string; text: string; icon: React.ReactNode }>
+}) => (
   <nav className="rounded-3xl border border-gray-200 p-6 dark:border-gray-700 space-y-4">
-    <p className="leading-6 text-gray-700 dark:text-gray-200 text-center">Ready to begin?</p>
+    <p className="leading-6 text-gray-700 dark:text-gray-200 text-center">
+      Ready to begin?
+    </p>
     <ul>
       {resources.map(({ href, text, icon }) => (
         <li key={href}>
@@ -56,7 +64,7 @@ const Navigation = ({ resources }: { resources: Array<{ href: string; text: stri
       ))}
     </ul>
   </nav>
-);
+)
 
 const ReactIcon = () => (
   <svg
@@ -73,7 +81,7 @@ const ReactIcon = () => (
       strokeLinecap="round"
     />
   </svg>
-);
+)
 
 export function Welcome() {
   return (
@@ -153,7 +161,7 @@ export function Welcome() {
           <Navigation
             resources={[
               {
-                href: "/track-one",
+                href: "/track-one/?tab=products",
                 text: "Start Track One",
                 icon: <ReactIcon />
               },
@@ -167,5 +175,5 @@ export function Welcome() {
         </div>
       </div>
     </main>
-  );
+  )
 }

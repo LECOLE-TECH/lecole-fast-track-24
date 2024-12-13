@@ -5,8 +5,8 @@ import { appRoute } from "./routes/index.js"
 import { notFoundHandler } from "./middlewares/not-found.js"
 import { errorHandler } from "./middlewares/error-handler.js"
 import helmet from "helmet"
-import compression from "compression"
 import { connectDatabase } from "./configs/db.config.js"
+import compression from "compression"
 
 export const expressApplication = (app) => {
   app.use(express.json())

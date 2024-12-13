@@ -1,5 +1,5 @@
 import React, { Suspense } from "react"
-import type { Route } from "../track-one/+types"
+import type { Route } from "./+types"
 import { SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar"
 import { AppSidebar } from "~/components/sidebar"
 import { useSearchParams } from "react-router"

@@ -6,6 +6,8 @@ export const TRACK_ONE_CONSTANTS = {
   PRODUCT_TAB: "products"
 }
 
+export const ITEM_PER_PAGE = ["10", "20", "50"]
+
 export const DUMMY_CATEROGY = [
   "Electronics",
   "Home",
@@ -16,3 +18,5 @@ export const DUMMY_CATEROGY = [
   "Books",
   "Sports"
 ]
+
+export const ROLE = ["user", "admin"]

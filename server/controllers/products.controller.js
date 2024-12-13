@@ -4,7 +4,7 @@ import fuzzysort from "fuzzysort"
 import { faker } from "@faker-js/faker"
 import { db } from "../configs/db.config.js"
 
-export const createProduct = async (req, res) => {
+export const createProduct = async (req, res, next) => {
   const { name, description, price, stock, category, brand } = req.body
   const image = faker.image.urlPicsumPhotos(640, 480, undefined, true)
 
@@ -19,10 +19,12 @@ export const createProduct = async (req, res) => {
       [name, description, price, stock, category, image, brand],
       function (err) {
         if (err) {
-          return new ErrorResponse(
-            ReasonPhrases.INTERNAL_SERVER_ERROR,
-            StatusCodes.INTERNAL_SERVER_ERROR
-          ).send(res)
+          return next(
+            new ErrorResponse(
+              ReasonPhrases.INTERNAL_SERVER_ERROR,
+              StatusCodes.INTERNAL_SERVER_ERROR
+            )
+          )
         }
 
         const selectQuery = `
@@ -30,11 +32,12 @@ export const createProduct = async (req, res) => {
         `
         db.get(selectQuery, [this.lastID], (err, product) => {
           if (err) {
-            const error = new ErrorResponse(
-              ReasonPhrases.INTERNAL_SERVER_ERROR,
-              StatusCodes.INTERNAL_SERVER_ERROR
+            return next(
+              new ErrorResponse(
+                ReasonPhrases.INTERNAL_SERVER_ERROR,
+                StatusCodes.INTERNAL_SERVER_ERROR
+              )
             )
-            return error.send(res)
           }
 
           const success = new SuccessResponse(
@@ -49,7 +52,7 @@ export const createProduct = async (req, res) => {
   })
 }
 
-export const getListProducts = async (req, res) => {
+export const getListProducts = async (req, res, next) => {
   const { page = 1, limit = 10, search = "" } = req.query
 
   const offset = (page - 1) * limit
@@ -62,9 +65,11 @@ export const getListProducts = async (req, res) => {
 
     db.all(baseQuery, (err, products) => {
       if (err) {
-        throw new ErrorResponse(
-          ReasonPhrases.INTERNAL_SERVER_ERROR,
-          StatusCodes.INTERNAL_SERVER_ERROR
+        return next(
+          new ErrorResponse(
+            ReasonPhrases.INTERNAL_SERVER_ERROR,
+            StatusCodes.INTERNAL_SERVER_ERROR
+          )
         )
       }
 
@@ -91,17 +96,21 @@ export const getListProducts = async (req, res) => {
 
     db.all(baseQuery, [limit, offset], (err, products) => {
       if (err) {
-        throw new ErrorResponse(
-          ReasonPhrases.INTERNAL_SERVER_ERROR,
-          StatusCodes.INTERNAL_SERVER_ERROR
+        return next(
+          new ErrorResponse(
+            ReasonPhrases.INTERNAL_SERVER_ERROR,
+            StatusCodes.INTERNAL_SERVER_ERROR
+          )
         )
       }
 
       db.get(countQuery, (err, row) => {
         if (err) {
-          throw new ErrorResponse(
-            ReasonPhrases.INTERNAL_SERVER_ERROR,
-            StatusCodes.INTERNAL_SERVER_ERROR
+          return next(
+            new ErrorResponse(
+              ReasonPhrases.INTERNAL_SERVER_ERROR,
+              StatusCodes.INTERNAL_SERVER_ERROR
+            )
           )
         }
 
@@ -110,7 +119,7 @@ export const getListProducts = async (req, res) => {
         const data = {
           page: parseInt(page),
           limit: parseInt(limit),
-          total: products.length,
+          total: total,
           totalPages: totalPages,
           items: products
         }
@@ -125,7 +134,7 @@ export const getListProducts = async (req, res) => {
   }
 }
 
-export const updateProduct = async (req, res) => {
+export const updateProduct = async (req, res, next) => {
   const { id } = req.params
   const { name, description, price, stock, category, brand, image } = req.body
 
@@ -140,13 +149,17 @@ export const updateProduct = async (req, res) => {
     [name, description, price, stock, category, image, brand, id],
     function (err) {
       if (err) {
-        throw new ErrorResponse(
-          ReasonPhrases.INTERNAL_SERVER_ERROR,
-          StatusCodes.INTERNAL_SERVER_ERROR
+        return next(
+          new ErrorResponse(
+            ReasonPhrases.INTERNAL_SERVER_ERROR,
+            StatusCodes.INTERNAL_SERVER_ERROR
+          )
         )
       }
       if (this.changes === 0) {
-        throw new ErrorResponse(ReasonPhrases.NOT_FOUND, StatusCodes.NOT_FOUND)
+        return next(
+          new ErrorResponse(ReasonPhrases.NOT_FOUND, StatusCodes.NOT_FOUND)
+        )
       }
 
       const data = {
@@ -161,13 +174,15 @@ export const updateProduct = async (req, res) => {
   )
 }
 
-export const deleteProducts = async (req, res) => {
+export const deleteProducts = async (req, res, next) => {
   const { ids } = req.body
 
   if (!Array.isArray(ids) || ids.length === 0) {
-    throw new ErrorResponse(
-      "Invalid input: 'ids' should be a non-empty array",
-      StatusCodes.BAD_REQUEST
+    return next(
+      new ErrorResponse(
+        "Invalid input: 'ids' should be a non-empty array",
+        StatusCodes.BAD_REQUEST
+      )
     )
   }
 
@@ -177,13 +192,17 @@ export const deleteProducts = async (req, res) => {
 
   db.run(query, ids, function (err) {
     if (err) {
-      throw new ErrorResponse(
-        ReasonPhrases.INTERNAL_SERVER_ERROR,
-        StatusCodes.INTERNAL_SERVER_ERROR
+      return next(
+        new ErrorResponse(
+          ReasonPhrases.INTERNAL_SERVER_ERROR,
+          StatusCodes.INTERNAL_SERVER_ERROR
+        )
       )
     }
     if (this.changes === 0) {
-      throw new ErrorResponse(ReasonPhrases.NOT_FOUND, StatusCodes.NOT_FOUND)
+      return next(
+        new ErrorResponse(ReasonPhrases.NOT_FOUND, StatusCodes.NOT_FOUND)
+      )
     }
 
     const data = {

@@ -50,7 +50,51 @@ export const insertProductsDummy = (db) => {
           )
         }
         stmt.finalize()
-        console.log("Database seeded with dummy data")
+        console.log("Database seeded with dummy data products")
+      }
+    })
+  })
+}
+
+function generateUser() {
+  const avatar = faker.image.urlPicsumPhotos(200, 200, undefined, true)
+  const roles = ["user"]
+  const role = faker.helpers.arrayElement(roles)
+
+  return {
+    avatar: avatar,
+    username: faker.internet.displayName(),
+    role,
+    secret: faker.lorem.words(3)
+  }
+}
+
+const usersDummy = Array.from({ length: 100 }, generateUser)
+
+export const insertUsersDummy = (db) => {
+  db.serialize(() => {
+    db.run(`
+       CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      avatar TEXT,
+      username TEXT NOT NULL UNIQUE,
+      role TEXT NOT NULL,
+      secret TEXT
+      )
+    `)
+  })
+
+  db.serialize(() => {
+    db.get("SELECT COUNT(*) AS count FROM users", (err, row) => {
+      if (row?.count === 0) {
+        const stmt = db.prepare(
+          "INSERT INTO users (avatar, username, role, secret) VALUES (?, ?, ?, ?)"
+        )
+        for (const user of usersDummy) {
+          stmt.run(user.avatar, user.username, user.role, user.secret)
+        }
+        stmt.finalize()
+        console.log("Database seeded with dummy user data")
       }
     })
   })

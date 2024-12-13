@@ -41,10 +41,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         <QueryClientProvider client={queryClient}>
           {children}
-          <ReactQueryDevtools />
+          {/* <ReactQueryDevtools /> */}
           <ToastContainer position="top-left" theme="colored" />
         </QueryClientProvider>
-
         <ScrollRestoration />
         <Scripts />
       </body>
