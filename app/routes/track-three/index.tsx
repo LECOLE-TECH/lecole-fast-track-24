@@ -62,7 +62,7 @@ export default function TrackThree() {
   }, []);
 
   const loadLocalData = (db: any) => {
-    const results: Todo[] = [];
+    const results: TodoLocal[] = [];
     db.exec({
       sql: "SELECT id, title, status, synced, created_at FROM todos ORDER BY created_at DESC",
       callback: (row: any) => {
