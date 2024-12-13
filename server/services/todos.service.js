@@ -1,7 +1,7 @@
 import sqlite3 from "sqlite3";
 
 class TodosService {
-  construct() {
+  constructor() {
     this.db = new sqlite3.Database("./database/todos.db", (err) => {
       if (err) {
         console.error("Error opening database:", err);
@@ -9,6 +9,7 @@ class TodosService {
         console.log("Connected to the SQLite database.");
       }
     });
+
     this.initialDb();
   }
 
@@ -34,9 +35,9 @@ class TodosService {
       { title: "Master TypeScript", status: "backlog" },
     ];
 
-    db.get("SELECT COUNT(*) as count FROM todos", (err, row) => {
+    this.db.get("SELECT COUNT(*) as count FROM todos", (err, row) => {
       if (row?.count === 0) {
-        const stmt = db.prepare(
+        const stmt = this.db.prepare(
           "INSERT INTO todos (title, status) VALUES (?, ?)"
         );
         seedTodos.forEach((todo) => {
@@ -52,7 +53,6 @@ class TodosService {
     return new Promise((resolve, reject) => {
       this.db.all(
         "SELECT * FROM todos ORDER BY created_at DESC",
-        [],
         (err, rows) => {
           if (err) {
             reject(err);
@@ -153,3 +153,5 @@ class TodosService {
     });
   }
 }
+
+export default new TodosService();
