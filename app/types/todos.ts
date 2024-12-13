@@ -2,15 +2,12 @@ export interface Todo {
   id: number;
   title: string;
   status: "backlog" | "in_progress" | "done";
-  createdAt: string;
+  created_at: string;
 }
 
-export interface TodoLocal {
-  id: number;
-  title: string;
-  status: Todo["status"];
+export interface TodoLocal extends Todo {
   synced: boolean;
-  created_at: string;
+  position?: { x: number; y: number };
 }
 
 export interface TodoUpdate {

@@ -6,6 +6,8 @@ import type { Todo, TodoLocal } from "~/types/todos";
 import { useTodoStoreLocal } from "~/hooks/useTodoStoreLocal";
 import useDetectNetwork from "~/hooks/useDetectNetwork";
 import TodoColumn from "~/components/todoColumns";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 const columns: { id: Todo["status"]; title: string }[] = [
   { id: "backlog", title: "Backlog" },
@@ -195,45 +197,47 @@ export default function TrackThree() {
   );
 
   return (
-    <div className='flex flex-col p-8 gap-4 min-h-screen'>
-      <div className='flex justify-between items-center'>
-        <h1 className='text-2xl font-bold'>Todo App</h1>
-        <div
-          className={`px-2 py-1 rounded ${
-            isOnline ? "bg-green-500" : "bg-yellow-500"
-          }`}
-        >
-          {isOnline ? "Online" : "Offline"}
+    <DndProvider backend={HTML5Backend}>
+      <div className='flex flex-col p-8 gap-4 min-h-screen'>
+        <div className='flex justify-between items-center'>
+          <h1 className='text-2xl font-bold'>Todo App</h1>
+          <div
+            className={`px-2 py-1 rounded ${
+              isOnline ? "bg-green-500" : "bg-yellow-500"
+            }`}
+          >
+            {isOnline ? "Online" : "Offline"}
+          </div>
+          <Button onClick={syncWithBackend}>Sync Now</Button>
         </div>
-        <Button onClick={syncWithBackend}>Sync Now</Button>
-      </div>
 
-      {error && <div className='text-red-500 mb-4'>Error: {error}</div>}
+        {error && <div className='text-red-500 mb-4'>Error: {error}</div>}
 
-      {/* Add todo input */}
-      <div className='flex gap-2 mb-4'>
-        <input
-          type='text'
-          value={newTodoTitle}
-          onChange={(e) => setNewTodoTitle(e.target.value)}
-          className='flex-1 px-3 py-2 border rounded'
-          placeholder='Add new todo...'
-        />
-        <Button onClick={addTodo}>Add Todo</Button>
-      </div>
-
-      {/* Todos Columns */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-        {columns.map((column) => (
-          <TodoColumn
-            key={column.id}
-            id={column.id}
-            title={column.title}
-            todos={todos.filter((todo) => todo.status === column.id)}
-            onDragStop={handleDragStop}
+        {/* Add todo input */}
+        <div className='flex gap-2 mb-4'>
+          <input
+            type='text'
+            value={newTodoTitle}
+            onChange={(e) => setNewTodoTitle(e.target.value)}
+            className='flex-1 px-3 py-2 border rounded'
+            placeholder='Add new todo...'
           />
-        ))}
+          <Button onClick={addTodo}>Add Todo</Button>
+        </div>
+
+        {/* Todos Columns */}
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+          {columns.map((column) => (
+            <TodoColumn
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              todos={todos.filter((todo) => todo.status === column.id)}
+              onDragStop={handleDragStop}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+    </DndProvider>
   );
 }
