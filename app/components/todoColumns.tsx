@@ -13,38 +13,41 @@ interface TodoColumnProps {
 
 const TodoColumn: React.FC<TodoColumnProps> = React.memo(
   ({ id, title, todos, updateTodoStatus }) => {
-    const [{ canDrop, isOver }, drop] = useDrop(() => ({
-      accept: "TODO",
-      drop: (item: { id: number; status: Todo["status"] }) => {
-        if (item.status !== id) {
-          updateTodoStatus(item.id, id);
-        }
-      },
-      collect: (monitor) => ({
-        isOver: monitor.isOver(),
-        canDrop: monitor.canDrop(),
+    const [{ canDrop, isOver }, drop] = useDrop(
+      () => ({
+        accept: "TODO",
+        drop: (item: { id: number; status: Todo["status"] }, monitor) => {
+          if (!monitor.didDrop()) {
+            if (item.status !== id) {
+              updateTodoStatus(item.id, id);
+            }
+          }
+        },
+        collect: (monitor) => ({
+          isOver: monitor.isOver(),
+          canDrop: monitor.canDrop(),
+        }),
       }),
-    }));
+      [id, updateTodoStatus]
+    );
 
-    console.log(`isOver: ${isOver}`);
-    console.log(`canDrop: ${canDrop}`);
+    const isActive = canDrop && isOver;
 
     return (
-      <motion.div
+      <div
         ref={drop}
-        layout
         className={`border rounded-lg p-4 relative bg-gray-50 ${
-          isOver ? "bg-blue-100" : ""
+          isActive ? "bg-blue-100" : canDrop ? "bg-blue-50" : ""
         }`}
         style={{ height: "600px", overflowY: "auto" }}
       >
         <h2 className='font-bold mb-4'>{title}</h2>
-        <motion.div ref={drop} layout className='space-y-2'>
+        <div className='space-y-2'>
           {todos.map((todo, index) => (
             <TodoItem key={todo.id} todo={todo} index={index} />
           ))}
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     );
   }
 );

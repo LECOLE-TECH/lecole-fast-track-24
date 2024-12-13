@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { useDrag } from "react-dnd";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
@@ -14,15 +14,16 @@ export const TodoItem: React.FC<TodoItemProps> = React.memo(
   ({ todo, index }) => {
     const deleteTodo = useTodoStoreLocal((state) => state.deleteTodo);
 
-    const [{ isDragging }, drag] = useDrag(() => ({
-      type: "TODO",
-      item: { id: todo.id, status: todo.status },
-      collect: (monitor) => ({
-        isDragging: !!monitor.isDragging(),
+    const [{ isDragging }, drag] = useDrag(
+      () => ({
+        type: "TODO",
+        item: { id: todo.id, status: todo.status },
+        collect: (monitor) => ({
+          isDragging: monitor.isDragging(),
+        }),
       }),
-    }));
-
-    console.log(`isDragging: ${isDragging}`);
+      [todo.id, todo.status]
+    );
 
     return (
       <motion.div
