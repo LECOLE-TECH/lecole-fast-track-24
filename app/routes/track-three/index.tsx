@@ -7,8 +7,6 @@ import TodoColumn from "~/components/todoColumns";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import socket from "~/utils/socket";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const columns: { id: Todo["status"]; title: string }[] = [
   { id: "backlog", title: "Backlog" },
@@ -32,25 +30,19 @@ export default function TrackThree() {
     const onConnect = () => {
       setIsSocketConnected(true);
       setIsOnline(true);
-      toast.success("Connected to server");
     };
 
     const onDisconnect = () => {
       setIsSocketConnected(false);
       setIsOnline(false);
-      toast.error("Disconnected from server");
     };
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
 
-    socket.on("user-connect-server", (data) => {
-      toast.success(data.message);
-    });
+    socket.on("user-connect-server", (data) => {});
 
-    socket.on("user-disconnect-server", (data) => {
-      toast.error(data.message);
-    });
+    socket.on("user-disconnect-server", (data) => {});
 
     return () => {
       socket.off("connect", onConnect);
@@ -259,7 +251,6 @@ export default function TrackThree() {
           </div>
         </div>
       </DndProvider>
-      <ToastContainer />
     </>
   );
 }
