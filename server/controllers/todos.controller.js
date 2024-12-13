@@ -55,6 +55,7 @@ class TodosController {
   async syncMultiTodo(req, res) {
     try {
       const { todos } = req.body;
+      console.log(todos);
       if (!Array.isArray(todos)) {
         return standardResponse(res, 400, null, "Invalid sync data");
       }

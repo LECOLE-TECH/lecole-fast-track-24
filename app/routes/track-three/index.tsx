@@ -1,8 +1,10 @@
 import type { Route } from "../track-three/+types";
 import { Button } from "~/components/ui/button";
 import { useEffect, useState } from "react";
+import { syncTodos } from "~/apis/todosApi";
+import type { Todo } from "~/types/todos";
 
-interface Todo {
+interface TodoLocal {
   id: number;
   title: string;
   status: "backlog" | "in_progress" | "done";
@@ -15,7 +17,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function TrackThree() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<TodoLocal[]>([]);
   const [error, setError] = useState<string>("");
   const [localDb, setLocalDb] = useState<any>(null);
   const [newTodoTitle, setNewTodoTitle] = useState("");
@@ -24,7 +26,8 @@ export default function TrackThree() {
   useEffect(() => {
     const initLocalDb = async () => {
       try {
-        const sqlite3InitModule = (await import("@sqlite.org/sqlite-wasm")).default;
+        const sqlite3InitModule = (await import("@sqlite.org/sqlite-wasm"))
+          .default;
         const sqlite3 = await sqlite3InitModule();
         const db = new sqlite3.oo1.DB("/local-todos.sqlite3", "ct");
 
@@ -68,9 +71,9 @@ export default function TrackThree() {
           title: row[1],
           status: row[2],
           synced: Boolean(row[3]),
-          created_at: row[4]
+          created_at: row[4],
         });
-      }
+      },
     });
     setTodos(results);
   };
@@ -81,7 +84,7 @@ export default function TrackThree() {
     try {
       localDb.exec({
         sql: "INSERT INTO todos (title, synced) VALUES (?, 0)",
-        bind: [newTodoTitle]
+        bind: [newTodoTitle],
       });
       setNewTodoTitle("");
       loadLocalData(localDb);
@@ -90,11 +93,11 @@ export default function TrackThree() {
     }
   };
 
-  const updateTodoStatus = (todoId: number, newStatus: Todo["status"]) => {
+  const updateTodoStatus = (todoId: number, newStatus: TodoLocal["status"]) => {
     try {
       localDb.exec({
         sql: "UPDATE todos SET status = ?, synced = 0 WHERE id = ?",
-        bind: [newStatus, todoId]
+        bind: [newStatus, todoId],
       });
       loadLocalData(localDb);
     } catch (err: any) {
@@ -105,31 +108,21 @@ export default function TrackThree() {
   const syncWithBackend = async () => {
     try {
       // Get all unsynced todos
-      const unsyncedTodos: Partial<Todo>[] = [];
+      const unsyncedTodos: Partial<TodoLocal>[] = [];
       localDb.exec({
         sql: "SELECT id, title, status FROM todos WHERE synced = 0",
         callback: (row: any) => {
           unsyncedTodos.push({
             id: row[0],
             title: row[1],
-            status: row[2]
+            status: row[2],
           } as const);
-        }
-      });
-
-      // Send unsynced todos to backend
-      const response = await fetch("http://localhost:3000/api/todos/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ todos: unsyncedTodos })
       });
-
-      if (!response.ok) throw new Error("Sync failed");
 
       // Get updated todos from backend
-      const serverTodos = await response.json();
+      console.log(unsyncedTodos);
+      const serverTodos = await syncTodos(unsyncedTodos);
 
       // Update local database with server data
       localDb.exec("BEGIN TRANSACTION");
@@ -146,20 +139,20 @@ export default function TrackThree() {
           bind: [todo.id],
           callback: (row: any) => {
             exists = row[0] > 0;
-          }
+          },
         });
 
         if (exists) {
           // Update existing todo
           localDb.exec({
             sql: "UPDATE todos SET title = ?, status = ?, synced = 1 WHERE id = ?",
-            bind: [todo.title, todo.status, todo.id]
+            bind: [todo.title, todo.status, todo.id],
           });
         } else {
           // Insert new todo
           localDb.exec({
             sql: "INSERT INTO todos (id, title, status, synced) VALUES (?, ?, ?, 1)",
-            bind: [todo.id, todo.title, todo.status]
+            bind: [todo.id, todo.title, todo.status],
           });
         }
       });
@@ -181,39 +174,47 @@ export default function TrackThree() {
     return () => clearInterval(interval);
   }, [localDb]);
 
-  const filterTodosByStatus = (status: Todo["status"]) => {
+  const filterTodosByStatus = (status: TodoLocal["status"]) => {
     return todos.filter((todo) => todo.status === status);
   };
 
   return (
-    <div className="flex flex-col p-8 gap-4 min-h-screen">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Todo App</h1>
+    <div className='flex flex-col p-8 gap-4 min-h-screen'>
+      <div className='flex justify-between items-center'>
+        <h1 className='text-2xl font-bold'>Todo App</h1>
         <Button onClick={syncWithBackend}>Sync Now</Button>
       </div>
 
-      {error && <div className="text-red-500 mb-4">Error: {error}</div>}
+      {error && <div className='text-red-500 mb-4'>Error: {error}</div>}
 
-      <div className="flex gap-2 mb-4">
+      <div className='flex gap-2 mb-4'>
         <input
-          type="text"
+          type='text'
           value={newTodoTitle}
           onChange={(e) => setNewTodoTitle(e.target.value)}
-          className="flex-1 px-3 py-2 border rounded"
-          placeholder="Add new todo..."
+          className='flex-1 px-3 py-2 border rounded'
+          placeholder='Add new todo...'
         />
         <Button onClick={addTodo}>Add Todo</Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="border rounded-lg p-4">
-          <h2 className="font-bold mb-4">Backlog</h2>
-          <div className="space-y-2">
+      <div className='grid grid-cols-3 gap-4'>
+        <div className='border rounded-lg p-4'>
+          <h2 className='font-bold mb-4'>Backlog</h2>
+          <div className='space-y-2'>
             {filterTodosByStatus("backlog").map((todo) => (
-              <div key={todo.id} className={`p-3 rounded-lg border ${todo.synced ? "bg-green-100" : "bg-yellow-100"}`}>
+              <div
+                key={todo.id}
+                className={`p-3 rounded-lg border ${
+                  todo.synced ? "bg-green-100" : "bg-yellow-100"
+                }`}
+              >
                 <p>{todo.title}</p>
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "in_progress")}>
+                <div className='flex gap-2 mt-2'>
+                  <Button
+                    size='sm'
+                    onClick={() => updateTodoStatus(todo.id, "in_progress")}
+                  >
                     Move to Progress
                   </Button>
                 </div>
@@ -222,17 +223,28 @@ export default function TrackThree() {
           </div>
         </div>
 
-        <div className="border rounded-lg p-4">
-          <h2 className="font-bold mb-4">In Progress</h2>
-          <div className="space-y-2">
+        <div className='border rounded-lg p-4'>
+          <h2 className='font-bold mb-4'>In Progress</h2>
+          <div className='space-y-2'>
             {filterTodosByStatus("in_progress").map((todo) => (
-              <div key={todo.id} className={`p-3 rounded-lg border ${todo.synced ? "bg-green-100" : "bg-yellow-100"}`}>
+              <div
+                key={todo.id}
+                className={`p-3 rounded-lg border ${
+                  todo.synced ? "bg-green-100" : "bg-yellow-100"
+                }`}
+              >
                 <p>{todo.title}</p>
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "backlog")}>
+                <div className='flex gap-2 mt-2'>
+                  <Button
+                    size='sm'
+                    onClick={() => updateTodoStatus(todo.id, "backlog")}
+                  >
                     Move to Backlog
                   </Button>
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "done")}>
+                  <Button
+                    size='sm'
+                    onClick={() => updateTodoStatus(todo.id, "done")}
+                  >
                     Move to Done
                   </Button>
                 </div>
@@ -241,14 +253,22 @@ export default function TrackThree() {
           </div>
         </div>
 
-        <div className="border rounded-lg p-4">
-          <h2 className="font-bold mb-4">Done</h2>
-          <div className="space-y-2">
+        <div className='border rounded-lg p-4'>
+          <h2 className='font-bold mb-4'>Done</h2>
+          <div className='space-y-2'>
             {filterTodosByStatus("done").map((todo) => (
-              <div key={todo.id} className={`p-3 rounded-lg border ${todo.synced ? "bg-green-100" : "bg-yellow-100"}`}>
+              <div
+                key={todo.id}
+                className={`p-3 rounded-lg border ${
+                  todo.synced ? "bg-green-100" : "bg-yellow-100"
+                }`}
+              >
                 <p>{todo.title}</p>
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "in_progress")}>
+                <div className='flex gap-2 mt-2'>
+                  <Button
+                    size='sm'
+                    onClick={() => updateTodoStatus(todo.id, "in_progress")}
+                  >
                     Move to Progress
                   </Button>
                 </div>
