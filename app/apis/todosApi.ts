@@ -1,4 +1,4 @@
-import type { Todo } from "~/types/todos";
+import type { Todo, TodoLocal } from "~/types/todos";
 
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/todos`;
 
@@ -79,14 +79,14 @@ export const deleteTodo = async (id: number): Promise<boolean> => {
   }
 };
 
-export const syncTodos = async (todos: any): Promise<Todo[]> => {
+export const syncTodos = async (todos: TodoLocal[]): Promise<Todo[]> => {
   try {
     const response = await fetch(`${baseUrl}/sync`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(todos),
+      body: JSON.stringify({ todos: todos }),
       credentials: "same-origin",
     });
     if (!response.ok) {

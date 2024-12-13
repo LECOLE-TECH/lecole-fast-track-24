@@ -2,15 +2,7 @@ import type { Route } from "../track-three/+types";
 import { Button } from "~/components/ui/button";
 import { useEffect, useState } from "react";
 import { syncTodos } from "~/apis/todosApi";
-import type { Todo } from "~/types/todos";
-
-interface TodoLocal {
-  id: number;
-  title: string;
-  status: "backlog" | "in_progress" | "done";
-  synced: boolean;
-  created_at: string;
-}
+import type { Todo, TodoLocal } from "~/types/todos";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Track Three" }];
@@ -122,7 +114,7 @@ export default function TrackThree() {
 
       // Get updated todos from backend
       console.log(unsyncedTodos);
-      const serverTodos = await syncTodos(unsyncedTodos);
+      const serverTodos = await syncTodos(unsyncedTodos as TodoLocal[]);
 
       // Update local database with server data
       localDb.exec("BEGIN TRANSACTION");

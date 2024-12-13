@@ -122,26 +122,53 @@ class TodosService {
 
   async syncMultiTodo(todos) {
     return new Promise((resolve, reject) => {
-      this.db.serialize(() => {
+      this.db.serialize(async () => {
         try {
           this.db.run("BEGIN TRANSACTION");
 
           // Process each todo from the client
-          todos.forEach((todo) => {
-            if (todo.id) {
-              // Update existing todo
-              this.db.run("UPDATE todos SET status = ? WHERE id = ?", [
-                todo.status,
-                todo.id,
-              ]);
+          for (const todo of todos) {
+            const self = this;
+            // Check if todo is exist or not
+            const row = await new Promise((resolve, reject) => {
+              self.db.get(
+                "SELECT * FROM todos WHERE id = ?",
+                [todo.id],
+                (err, row) => {
+                  if (err) {
+                    reject(err);
+                  }
+                  resolve(row);
+                }
+              );
+            });
+
+            if (row) {
+              // Upate if existed
+              await new Promise((resolve, reject) => {
+                self.db.run(
+                  "UPDATE todos SET status = ? WHERE id = ?",
+                  [todo.status, todo.id],
+                  (err) => {
+                    if (err) reject(err);
+                    resolve();
+                  }
+                );
+              });
             } else {
-              // Insert new todo
-              this.db.run("INSERT INTO todos (title, status) VALUES (?, ?)", [
-                todo.title,
-                todo.status,
-              ]);
+              // Insert if not existed
+              await new Promise((resolve, reject) => {
+                self.db.run(
+                  "INSERT INTO todos (title, status) VALUES (?, ?)",
+                  [todo.title, todo.status],
+                  (err) => {
+                    if (err) reject(err);
+                    resolve();
+                  }
+                );
+              });
             }
-          });
+          }
 
           this.db.run("COMMIT", [], (err) => {
             if (err) {
