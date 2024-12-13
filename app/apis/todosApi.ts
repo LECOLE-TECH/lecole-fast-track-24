@@ -1,4 +1,3 @@
-import type { To } from "react-router";
 import type { Todo } from "~/types/todos";
 
 const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/todos`;
@@ -36,7 +35,30 @@ export const createTodo = async (
     }
     return await response.json();
   } catch (error) {
-    console.error("Error creating product: ", error);
+    console.error("Error creating todo: ", error);
+    throw error;
+  }
+};
+
+export const updateTodo = async (
+  id: number,
+  todo: Partial<Omit<Todo, "id" | "createdAt" | "title">>
+): Promise<Todo> => {
+  try {
+    const response = await fetch(`${baseUrl}/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(todo),
+      credentials: "same-origin",
+    });
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating todo: ", error);
     throw error;
   }
 };

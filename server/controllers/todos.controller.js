@@ -22,6 +22,21 @@ class TodosController {
       standardResponse(res, 500, null, "Fail to create todo api");
     }
   }
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const updatedTodo = await todosService.updateTodo(Number(id), status);
+      if (updatedTodo === "Todo not found") {
+        return standardResponse(res, 404, null, updatedTodo);
+      }
+      return standardResponse(res, 201, updatedTodo, "Update success");
+    } catch (error) {
+      console.log(error);
+      standardResponse(res, 500, null, "Fail to udpate todo api");
+    }
+  }
 }
 
 export default new TodosController();
