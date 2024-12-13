@@ -9,7 +9,17 @@ const port = 3000;
 const server = http.createServer(app);
 const io = new Server(server);
 
-const db = new sqlite3.Database("./database/products.db", (err) => {
+// Enable CORS and WASM support
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
+const db = new sqlite3.Database("./database/todos.db", (err) => {
   if (err) {
     console.error("Error opening database:", err);
   } else {
@@ -17,70 +27,41 @@ const db = new sqlite3.Database("./database/products.db", (err) => {
   }
 });
 
+// Create todos table
 db.serialize(() => {
   db.run(`
-    CREATE TABLE IF NOT EXISTS products (
+    CREATE TABLE IF NOT EXISTS todos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      price REAL NOT NULL,
-      stock INTEGER NOT NULL
-    )
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL UNIQUE,
-      roles TEXT NOT NULL,
-      secret_phrase TEXT NOT NULL
+      title TEXT NOT NULL,
+      status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 });
 
-const seedProductData = [
-  { name: "Product A", description: "Description of Product A", price: 19.99, stock: 100 },
-  { name: "Product B", description: "Description of Product B", price: 29.99, stock: 150 },
-  { name: "Product C", description: "Description of Product C", price: 9.99, stock: 200 },
-  { name: "Product D", description: "Description of Product D", price: 49.99, stock: 80 },
-  { name: "Product E", description: "Description of Product E", price: 24.99, stock: 50 }
+// Seed some initial todos if the table is empty
+const seedTodos = [
+  { title: "Learn React", status: "done" },
+  { title: "Build a Todo App", status: "in_progress" },
+  { title: "Master TypeScript", status: "backlog" },
 ];
 
-const seedUserData = [
-  { username: "user1", roles: "user", secret_phrase: "secret123" },
-  { username: "admin1", roles: "admin", secret_phrase: "admin123" },
-  { username: "user2", roles: "user", secret_phrase: "secret456" },
-  { username: "admin2", roles: "admin", secret_phrase: "admin456" }
-];
-
-db.serialize(() => {
-  db.get("SELECT COUNT(*) AS count FROM products", (err, row) => {
-    if (row?.count === 0) {
-      const stmt = db.prepare("INSERT INTO products (name, description, price, stock) VALUES (?, ?, ?, ?)");
-      for (const product of seedProductData) {
-        stmt.run(product.name, product.description, product.price, product.stock);
-      }
-      stmt.finalize();
-      console.log("Database seeded with products data");
-    }
-  });
-
-  db.get("SELECT COUNT(*) AS count FROM users", (err, row) => {
-    if (row?.count === 0) {
-      const stmt = db.prepare("INSERT INTO users (username, roles, secret_phrase) VALUES (?, ?, ?)");
-      for (const user of seedUserData) {
-        stmt.run(user.username, user.roles, user.secret_phrase);
-      }
-      stmt.finalize();
-      console.log("Database seeded with users data");
-    }
-  });
+db.get("SELECT COUNT(*) as count FROM todos", (err, row) => {
+  if (row?.count === 0) {
+    const stmt = db.prepare("INSERT INTO todos (title, status) VALUES (?, ?)");
+    seedTodos.forEach(todo => {
+      stmt.run(todo.title, todo.status);
+    });
+    stmt.finalize();
+    console.log("Database seeded with initial todos");
+  }
 });
 
 app.use(express.json());
 
-app.get("/api/product", (req, res) => {
-  db.all("SELECT * FROM products", [], (err, rows) => {
+// Get all todos
+app.get("/api/todos", (req, res) => {
+  db.all("SELECT * FROM todos ORDER BY created_at DESC", [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -89,69 +70,124 @@ app.get("/api/product", (req, res) => {
   });
 });
 
-app.post("/api/register", (req, res) => {
-  const { username, roles, secret_phrase } = req.body;
+// Create new todo
+app.post("/api/todos", (req, res) => {
+  const { title, status = 'backlog' } = req.body;
 
-  if (!username || !roles || !secret_phrase) {
-    return res.status(400).json({ error: "Username, roles, and secret phrase are required" });
+  if (!title) {
+    return res.status(400).json({ error: "Title is required" });
   }
 
   db.run(
-    "INSERT INTO users (username, roles, secret_phrase) VALUES (?, ?, ?)",
-    [username, roles, secret_phrase],
-    (err) => {
+    "INSERT INTO todos (title, status) VALUES (?, ?)",
+    [title, status],
+    function(err) {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
-      res.status(201).json({ message: "User created successfully" });
+      
+      db.get(
+        "SELECT * FROM todos WHERE id = ?",
+        [this.lastID],
+        (err, row) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          res.status(201).json(row);
+        }
+      );
     }
   );
 });
 
-io.on("connection", (socket) => {
-  console.log("A user connected");
+// Update todo status
+app.put("/api/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
 
-  socket.on("update-secret-phrase", (data) => {
-    const { userId, newSecretPhrase, actorId } = data;
-    console.log(data);
+  if (!status || !['backlog', 'in_progress', 'done'].includes(status)) {
+    return res.status(400).json({ error: "Valid status is required" });
+  }
 
-    db.get("SELECT * FROM users WHERE username = ?", [actorId], (err, actor) => {
+  db.run(
+    "UPDATE todos SET status = ? WHERE id = ?",
+    [status, id],
+    function(err) {
       if (err) {
-        socket.emit("error", { error: "Database error" });
-        console.log(err);
-        return;
+        return res.status(500).json({ error: err.message });
       }
-
-      if (!actor) {
-        socket.emit("error", { error: `Actor not found: ${actorId}` });
-        console.log(`Actor not found: ${actorId}`);
-        return;
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Todo not found" });
       }
+      res.json({ id, status });
+    }
+  );
+});
 
-      if (actor.roles === "admin" || actorId === userId) {
-        db.run("UPDATE users SET secret_phrase = ? WHERE username = ?", [newSecretPhrase, userId], (err) => {
+// Sync endpoint to handle multiple todos
+app.post("/api/todos/sync", (req, res) => {
+  const { todos } = req.body;
+  
+  if (!Array.isArray(todos)) {
+    return res.status(400).json({ error: "Invalid sync data format" });
+  }
+
+  db.serialize(() => {
+    try {
+      db.run("BEGIN TRANSACTION");
+
+      // Process each todo from the client
+      todos.forEach(todo => {
+        if (todo.id) {
+          // Update existing todo
+          db.run(
+            "UPDATE todos SET status = ? WHERE id = ?",
+            [todo.status, todo.id]
+          );
+        } else {
+          // Insert new todo
+          db.run(
+            "INSERT INTO todos (title, status) VALUES (?, ?)",
+            [todo.title, todo.status]
+          );
+        }
+      });
+
+      db.run("COMMIT", [], (err) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+
+        // Return all todos after sync
+        db.all("SELECT * FROM todos ORDER BY created_at DESC", [], (err, rows) => {
           if (err) {
-            socket.emit("error", { error: "Failed to update secret phrase" });
-            console.log(err);
+            res.status(500).json({ error: err.message });
             return;
           }
-
-          io.emit("secret-phrase-updated", {
-            userId,
-            newSecretPhrase
-          });
-          socket.emit("success", { message: "Secret phrase updated successfully" });
-          console.log("Secret phrase updated successfully");
+          res.json(rows);
         });
-      } else {
-        socket.emit("error", { error: "You do not have permission to update this user's secret phrase" });
-        console.log(`You do not have permission to update this user's secret phrase: ${actorId}, ${actor.roles}`);
-      }
-    });
-  });
+      });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
+    } catch (err) {
+      db.run("ROLLBACK");
+      res.status(500).json({ error: err.message });
+    }
+  });
+});
+
+// Delete todo
+app.delete("/api/todos/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.run("DELETE FROM todos WHERE id = ?", id, function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: "Todo not found" });
+    }
+    res.json({ message: "Todo deleted successfully" });
   });
 });
 
