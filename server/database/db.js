@@ -40,6 +40,26 @@ const db = new sqlite3.Database(DBSOURCE, (err) => {
 				}
 			},
 		);
+
+		db.serialize(() => {
+			db.run(`
+			CREATE TABLE IF NOT EXISTS todos (
+			  id INTEGER PRIMARY KEY AUTOINCREMENT,
+			  title TEXT NOT NULL,
+			  status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
+			  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			)
+		  `);
+
+			db.run(`
+			CREATE TRIGGER IF NOT EXISTS update_todos_timestamp
+			AFTER UPDATE ON todos
+			BEGIN
+				UPDATE todos SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+			END;
+		  `);
+		});
 	}
 });
 

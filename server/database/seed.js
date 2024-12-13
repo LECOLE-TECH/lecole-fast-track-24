@@ -343,6 +343,12 @@ const seedUserData = [
 	},
 ];
 
+const seedTodos = [
+	{ title: "Learn React", status: "done" },
+	{ title: "Build a Todo App", status: "in_progress" },
+	{ title: "Master TypeScript", status: "backlog" },
+];
+
 const seedProductsDatabase = () => {
 	db.get("SELECT COUNT(*) AS count FROM products", (err, row) => {
 		if (err) {
@@ -383,15 +389,56 @@ const seedUsersDatabase = () => {
 				"INSERT INTO users (username, password, roles, secret_phrase) VALUES (?, ?, ?, ?)",
 			);
 			for (const user of seedUserData) {
-				stmt.run(user.username, user.password, user.roles, user.secret_phrase);
+				bcrypt.hash(user.password, 10, (err, hashedPassword) => {
+					if (err) {
+						console.error("Error hashing password:", err.message);
+						return;
+					}
+					stmt.run(
+						[user.username, hashedPassword, user.roles, user.secret_phrase],
+						(err) => {
+							if (err) {
+								console.error("Error inserting user:", err.message);
+							}
+						},
+					);
+				});
 			}
-			stmt.finalize();
-			console.log("Database seeded with users data");
+			stmt.finalize(() => {
+				console.log("Database seeded with users data.");
+			});
 		} else {
 			console.log("Database already contains users. Seeding skipped.");
 		}
 	});
 };
 
+const seedTodosDatabase = () => {
+	db.get("SELECT COUNT(*) AS count FROM todos", (err, row) => {
+		if (err) {
+			console.error("Error counting todos:", err.message);
+			return;
+		}
+		if (row?.count === 0) {
+			const stmt = db.prepare(
+				"INSERT INTO todos (title, status) VALUES (?, ?)",
+			);
+			for (const todo of seedTodos) {
+				stmt.run([todo.title, todo.status], (err) => {
+					if (err) {
+						console.error("Error inserting todo:", err.message);
+					}
+				});
+			}
+			stmt.finalize(() => {
+				console.log("Database seeded with initial todos.");
+			});
+		} else {
+			console.log("Database already contains todos. Seeding skipped.");
+		}
+	});
+};
+
 seedProductsDatabase();
 seedUsersDatabase();
+seedTodosDatabase();

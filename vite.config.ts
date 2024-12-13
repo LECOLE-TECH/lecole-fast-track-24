@@ -25,5 +25,12 @@ export default defineConfig({
 				rewrite: (path) => path.replace(/^\/api/, ""),
 			},
 		},
+		headers: {
+			"Cross-Origin-Opener-Policy": "same-origin",
+			"Cross-Origin-Embedder-Policy": "require-corp",
+		},
+	},
+	optimizeDeps: {
+		exclude: ["@sqlite.org/sqlite-wasm"],
 	},
 });

@@ -6,6 +6,7 @@ import http from "http";
 import socketHandler from "./sockets/socketHandler.js";
 import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoute.js";
+import todoRoutes from "./routes/todoRoutes.js"; // Import Todo Routes
 import { errorHandler } from "./middleware/errorHandler.js";
 import { logger } from "./utils/logger.js";
 import { setIO } from "./sockets/instance.js";
@@ -24,10 +25,17 @@ const io = new Server(server, {
 	},
 });
 
-// Set the Socket.io instance for use in other modules
+app.use((req, res, next) => {
+	res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+	res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+	res.setHeader("Access-Control-Allow-Origin", "*");
+	res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+	res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+	next();
+});
+
 setIO(io);
 
-// Apply Express middleware to the Express app, not the server
 app.use(express.json());
 app.use(
 	cors({
@@ -41,8 +49,7 @@ app.use(logger);
 // Routes
 app.use("/api/product", productRoutes);
 app.use("/api/user", userRoutes);
-
-// Error Handling Middleware
+app.use("/api/todos", todoRoutes);
 app.use(errorHandler);
 
 // Initialize Socket.io handlers
