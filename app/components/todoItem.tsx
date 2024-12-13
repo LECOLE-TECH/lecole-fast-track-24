@@ -13,7 +13,6 @@ interface TodoItemProps {
 export const TodoItem: React.FC<TodoItemProps> = React.memo(
   ({ todo, index }) => {
     const deleteTodo = useTodoStoreLocal((state) => state.deleteTodo);
-    const nodeRef = useRef(null);
 
     const [{ isDragging }, drag] = useDrag(() => ({
       type: "TODO",
@@ -22,6 +21,8 @@ export const TodoItem: React.FC<TodoItemProps> = React.memo(
         isDragging: !!monitor.isDragging(),
       }),
     }));
+
+    console.log(`isDragging: ${isDragging}`);
 
     return (
       <motion.div

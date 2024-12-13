@@ -132,7 +132,6 @@ export default function TrackThree() {
       });
 
       // Get updated todos from backend
-      console.log(unsyncedTodos);
       const serverTodos = await syncTodos(unsyncedTodos as TodoLocal[]);
 
       // Update local database with server data
@@ -189,13 +188,6 @@ export default function TrackThree() {
     return todos.filter((todo) => todo.status === status);
   };
 
-  const handleDragStop = useCallback(
-    (id: number, x: number, y: number) => {
-      updateTodoPosition(id, { x, y });
-    },
-    [updateTodoPosition]
-  );
-
   return (
     <DndProvider backend={HTML5Backend}>
       <div className='flex flex-col p-8 gap-4 min-h-screen'>
@@ -233,7 +225,7 @@ export default function TrackThree() {
               id={column.id}
               title={column.title}
               todos={todos.filter((todo) => todo.status === column.id)}
-              onDragStop={handleDragStop}
+              updateTodoStatus={updateTodoStatus}
             />
           ))}
         </div>
