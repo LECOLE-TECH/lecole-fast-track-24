@@ -147,8 +147,8 @@ class TodosService {
               // Upate if existed
               await new Promise((resolve, reject) => {
                 self.db.run(
-                  "UPDATE todos SET status = ? WHERE id = ?",
-                  [todo.status, todo.id],
+                  "UPDATE todos SET status = ?, title = ? WHERE id = ?",
+                  [todo.status, todo.title, todo.id],
                   (err) => {
                     if (err) reject(err);
                     resolve();
