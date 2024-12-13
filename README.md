@@ -1,45 +1,27 @@
-# Welcome to LECOLE Fast Track 24
+# LECOLE 3rd Track
 
-## User Admin Live Update Application
+## Implementation
+Built a Trello-like to-do app with a local-first approach. Key features include:
 
-This application enables users to create accounts and manage behavior based on their roles. It also provides real-time updates using **Socket.IO** for smooth and instant communication.
+- **SQLite with WASM**: Integrated a SQLite database on the frontend using WASM and synced it with the backend every 15 seconds.
+- **Drag-and-Drop Interface**: Implemented a smooth drag-and-drop experience using `react-dnd`.
+- **Conflict Resolution**: Ensured consistency across backend and frontend by introducing fields like `isAdded` and `isDeleted` in the `todos` table to handle sync conflicts effectively.
 
-### Features
+### How to Run
 
-- **Role-Based Notifications:**
-  - Notify admin users whenever a secret is updated.
-  - Notify individual users when their secrets are modified.
-  - Notify all users when a new user registers.
-  
-- **Additional Functionality:**
-  - Pagination for efficient feedback management.
-  - Real-time notifications for user interactions.
-  - Secure backend with **JWT authentication** and **password encryption**.
+1. **Install Dependencies**:
+    ```
+    npm install
+    ```
 
----
+2. **Start the Frontend**:
+    ```
+    npm run dev:server
+    ```
 
-## How to Run
+3. **Start the Server**:
+    ```
+    npm run dev
+    ```
 
-To set up and run the application locally, follow these steps:
-
-1. **Intall dependencies**
-   ```
-   yarn install
-   ```
-NOTE: If you got error while installing please delete the package-lock.json and this line in package.json:     
-  ```
-  "lecole-fast-track-24": "file:", 
-  ```
-
-2. **Start the Server:**
-   ```
-   npm run dev:server
-   ```
-
-3. **Start the Client:**
-   ```
-   npm run dev
-   ```
-
-4. **Access the Application:**
-    Open [http://localhost:5173/](http://localhost:5173/)
+4. Go to [http://localhost:5173/](http://localhost:5173/)

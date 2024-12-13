@@ -1,159 +1,202 @@
-// import express from "express";
-// import sqlite3 from "sqlite3";
-// import http from "http";
-// import { Server } from "socket.io";
-// import fs from "fs";
-
-
-// const app = express();
-// const port = 3000;
-
-// const server = http.createServer(app);
-// const io = new Server(server);
-
-// if (!fs.existsSync("./database")) {
-//   fs.mkdirSync("./database", { recursive: true });
-// }
-
-
-// const db = new sqlite3.Database("./database/products.db", (err) => {
-//   if (err) {
-//     console.error("Error opening database:", err);
-//   } else {
-//     console.log("Connected to the SQLite database.");
-//   }
-// });
-
-// db.serialize(() => {
-
-//   db.run(`
-//     CREATE TABLE IF NOT EXISTS users (
-//       id INTEGER PRIMARY KEY AUTOINCREMENT,
-//       username TEXT NOT NULL UNIQUE,
-//       roles TEXT NOT NULL,
-//       secret_phrase TEXT NOT NULL
-//     )
-//   `);
-// });
-
-// const seedUserData = [
-//   { username: "user1", roles: "user", secret_phrase: "secret123" },
-//   { username: "admin1", roles: "admin", secret_phrase: "admin123" },
-//   { username: "user2", roles: "user", secret_phrase: "secret456" },
-//   { username: "admin2", roles: "admin", secret_phrase: "admin456" }
-// ];
-
-// db.serialize(() => {
-//   db.get("SELECT COUNT(*) AS count FROM users", (err, row) => {
-//     if (row?.count === 0) {
-//       const stmt = db.prepare("INSERT INTO users (username, roles, secret_phrase) VALUES (?, ?, ?)");
-//       for (const user of seedUserData) {
-//         stmt.run(user.username, user.roles, user.secret_phrase);
-//       }
-//       stmt.finalize();
-//       console.log("Database seeded with users data");
-//     }
-//   });
-// });
-
-// app.use(express.json());
-
-// app.post("/api/register", (req, res) => {
-//   const { username, roles, secret_phrase } = req.body;
-
-//   if (!username || !roles || !secret_phrase) {
-//     return res.status(400).json({ error: "Username, roles, and secret phrase are required" });
-//   }
-
-//   db.run(
-//     "INSERT INTO users (username, roles, secret_phrase) VALUES (?, ?, ?)",
-//     [username, roles, secret_phrase],
-//     (err) => {
-//       if (err) {
-//         return res.status(500).json({ error: err.message });
-//       }
-//       res.status(201).json({ message: "User created successfully" });
-//     }
-//   );
-// });
-
-// io.on("connection", (socket) => {
-//   console.log("A user connected");
-
-//   socket.on("update-secret-phrase", (data) => {
-//     const { userId, newSecretPhrase, actorId } = data;
-//     console.log(data);
-
-//     db.get("SELECT * FROM users WHERE username = ?", [actorId], (err, actor) => {
-//       if (err) {
-//         socket.emit("error", { error: "Database error" });
-//         console.log(err);
-//         return;
-//       }
-
-//       if (!actor) {
-//         socket.emit("error", { error: `Actor not found: ${actorId}` });
-//         console.log(`Actor not found: ${actorId}`);
-//         return;
-//       }
-
-//       if (actor.roles === "admin" || actorId === userId) {
-//         db.run("UPDATE users SET secret_phrase = ? WHERE username = ?", [newSecretPhrase, userId], (err) => {
-//           if (err) {
-//             socket.emit("error", { error: "Failed to update secret phrase" });
-//             console.log(err);
-//             return;
-//           }
-
-//           io.emit("secret-phrase-updated", {
-//             userId,
-//             newSecretPhrase
-//           });
-//           socket.emit("success", { message: "Secret phrase updated successfully" });
-//           console.log("Secret phrase updated successfully");
-//         });
-//       } else {
-//         socket.emit("error", { error: "You do not have permission to update this user's secret phrase" });
-//         console.log(`You do not have permission to update this user's secret phrase: ${actorId}, ${actor.roles}`);
-//       }
-//     });
-//   });
-
-//   socket.on("disconnect", () => {
-//     console.log("User disconnected");
-//   });
-// });
-
-// server.listen(port, () => {
-//   console.log(`Server running at http://localhost:${port}`);
-// });
 import express from "express";
-import appRouter from "./routes/index.js";
+import sqlite3 from "sqlite3";
 import http from "http";
-import dotenv from "dotenv"
-import cookieParser from "cookie-parser";
-import { initializeSocketServer } from "./utils/socket/socketServer.js";
-import { initializeSocket } from "./utils/socket/socket.js";
-import cors from "cors"
+import { Server } from "socket.io";
 
-dotenv.config()
-const app = express()
-const corsOptions = {
-  origin: [process.env.FRONTEND_URL], 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-}
+const app = express();
+const port = 3000;
+
 const server = http.createServer(app);
-const io = initializeSocketServer(server);//Set up socket server
+const io = new Server(server);
 
-initializeSocket(io) // Add event for socket server
+// Enable CORS and WASM support
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
-app.use(cors(corsOptions));
-app.use(express.json())
-app.use(cookieParser())
-app.use(appRouter)
+const db = new sqlite3.Database("./database/todos.db", (err) => {
+  if (err) {
+    console.error("Error opening database:", err);
+  } else {
+    console.log("Connected to the SQLite database.");
+  }
+});
 
-server.listen(3000, () => {
-  console.log("Server started on port 3000")
-})
+// Create todos table
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS todos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+});
+
+// Seed some initial todos if the table is empty
+const seedTodos = [
+  { title: "Learn React", status: "done" },
+  { title: "Build a Todo App", status: "in_progress" },
+  { title: "Master TypeScript", status: "backlog" },
+];
+
+db.get("SELECT COUNT(*) as count FROM todos", (err, row) => {
+  if (row?.count === 0) {
+    const stmt = db.prepare("INSERT INTO todos (title, status) VALUES (?, ?)");
+    seedTodos.forEach(todo => {
+      stmt.run(todo.title, todo.status);
+    });
+    stmt.finalize();
+    console.log("Database seeded with initial todos");
+  }
+});
+
+app.use(express.json());
+
+// Get all todos
+app.get("/api/todos", (req, res) => {
+  db.all("SELECT * FROM todos ORDER BY created_at DESC", [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
+// Create new todo
+app.post("/api/todos", (req, res) => {
+  const { title, status = 'backlog' } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  db.run(
+    "INSERT INTO todos (title, status) VALUES (?, ?)",
+    [title, status],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      db.get(
+        "SELECT * FROM todos WHERE id = ?",
+        [this.lastID],
+        (err, row) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          res.status(201).json(row);
+        }
+      );
+    }
+  );
+});
+
+// Update todo status
+app.put("/api/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!status || !['backlog', 'in_progress', 'done'].includes(status)) {
+    return res.status(400).json({ error: "Valid status is required" });
+  }
+
+  db.run(
+    "UPDATE todos SET status = ? WHERE id = ?",
+    [status, id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Todo not found" });
+      }
+      res.json({ id, status });
+    }
+  );
+});
+
+// Sync endpoint to handle multiple todos
+app.post("/api/todos/sync", (req, res) => {
+  const { todos } = req.body;
+  
+  if (!Array.isArray(todos)) {
+    return res.status(400).json({ error: "Invalid sync data format" });
+  }
+
+  db.serialize(() => {
+    try {
+      db.run("BEGIN TRANSACTION");
+
+      // Process each todo from the client
+      todos.forEach(todo => {
+        console.log(todo)
+        if (todo.isAdded===1) {
+          // Insert new todo
+          db.run(
+            "INSERT INTO todos (title, status) VALUES (?, ?)",
+            [todo.title, todo.status]
+          );
+          
+        } else {
+          // Update existing todo
+          db.run(
+            "UPDATE todos SET status = ? WHERE id = ?",
+            [todo.status, todo.id]
+          )
+        }
+        if(todo.isDeleted===1){
+          db.run("DELETE FROM todos WHERE id = ?", todo.id)
+        }
+      });
+
+      db.run("COMMIT", [], (err) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+          return;
+        }
+
+        // Return all todos after sync
+        db.all("SELECT * FROM todos ORDER BY created_at DESC", [], (err, rows) => {
+          if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+          }
+          res.json(rows);
+        });
+      });
+
+    } catch (err) {
+      console.log(err)
+      db.run("ROLLBACK");
+      res.status(500).json({ error: err.message });
+    }
+  });
+});
+
+// Delete todo
+app.delete("/api/todos/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.run("DELETE FROM todos WHERE id = ?", id, function(err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: "Todo not found" });
+    }
+    res.json({ message: "Todo deleted successfully" });
+  });
+});
+
+server.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});

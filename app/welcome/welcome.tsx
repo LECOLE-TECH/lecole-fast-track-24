@@ -125,6 +125,28 @@ export function Welcome() {
           />
 
           <TrackCard
+            title="Track Three: Local-First Todo Board"
+            description="Build a Trello-like todo board application that prioritizes local-first operations while maintaining backend synchronization. The application should primarily work with local storage and attempt to sync with the backend. For bonus points, implement offline functionality where the app continues to work without a backend and syncs when connectivity is restored."
+            requirements={[
+              "Write clean, readable, and maintainable code",
+              "Implement proper error handling for backend connectivity issues",
+              "Structure components for optimal performance",
+              "Ensure smooth user experience during sync operations"
+            ]}
+            features={[
+              "Create a drag-and-drop interface for managing todos across three columns",
+              "Implement local SQLite storage using WASM",
+              "Fetch and merge backend changes every 15 seconds",
+              "Visual indicators for sync status (yellow = pending, green = synced)",
+              "Three status columns: Backlog, In Progress, and Done",
+              "Smooth animations for drag and drop interactions",
+              "(Advanced) Full offline support - continue working without backend",
+              "(Advanced) Conflict resolution when syncing offline changes",
+              "(Advanced) Network status detection and automatic sync resume"
+            ]}
+          />
+
+          <TrackCard
             title="Bonus Points"
             description="These additional features will enhance your submission and improve performance and user experience."
             features={[
@@ -160,6 +182,11 @@ export function Welcome() {
               {
                 href: "/track-two",
                 text: "Start Track Two",
+                icon: <ReactIcon />
+              },
+              {
+                href: "/track-three",
+                text: "Start Track Three",
                 icon: <ReactIcon />
               }
             ]}
