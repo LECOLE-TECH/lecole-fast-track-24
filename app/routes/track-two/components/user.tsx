@@ -48,6 +48,9 @@ const Users = () => {
       socket.emit("create-user", encryptedData)
       toast.success("User has been created successfully")
       setActionSheet(ActionSheet.DEFAULT)
+      queryClient.invalidateQueries({
+        queryKey: ["users", { page, limit, search }]
+      })
     }
   }
 
@@ -141,8 +144,6 @@ const Users = () => {
 
       socket.on("create-user-response", (response: string) => {
         const decryptedData = decryptMessage(response) as User
-        data!.data.items.unshift(decryptedData)
-        setSelectedIds([])
       })
 
       socket.on("delete-user-response", (_: string) => {
@@ -154,10 +155,6 @@ const Users = () => {
       socket?.off("update-user-response")
     }
   }, [socket])
-
-  useEffect(() => {
-    setSelectedIds([])
-  }, [data])
 
   if (isLoading)
     return (
