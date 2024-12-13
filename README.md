@@ -1,93 +1,27 @@
-# Welcome to LECOLE Fast Track 24
+# LECOLE 3rd Track
 
-## Features
+## Implementation
+Built a Trello-like to-do app with a local-first approach. Key features include:
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- **SQLite with WASM**: Integrated a SQLite database on the frontend using WASM and synced it with the backend every 15 seconds.
+- **Drag-and-Drop Interface**: Implemented a smooth drag-and-drop experience using `react-dnd`.
+- **Conflict Resolution**: Ensured consistency across backend and frontend by introducing fields like `isAdded` and `isDeleted` in the `todos` table to handle sync conflicts effectively.
 
-## Getting Started
+### How to Run
 
-### Installation
+1. **Install Dependencies**:
+    ```
+    npm install
+    ```
 
-Install the dependencies:
+2. **Start the Frontend**:
+    ```
+    npm run dev:server
+    ```
 
-```bash
-yarn install
-```
+3. **Start the Server**:
+    ```
+    npm run dev
+    ```
 
-### Development
-
-Start the development server with HMR:
-
-```bash
-yarn dev
-```
-
-Start the server:
-
-```bash
-yarn dev:server
-```
-
-Your front-end application will be available at `http://localhost:5173`.
-Your back-end application will be available at `http://localhost:3000`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-yarn build
-```
-
-## Deployment
-
-### Docker Deployment
-
-This template includes a Dockerfile optimized for yarn:
-
-- `Dockerfile` - for yarn
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `yarn build`
-
-```
-├── package.json
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+4. Go to [http://localhost:5173/](http://localhost:5173/)

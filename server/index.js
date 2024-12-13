@@ -138,18 +138,25 @@ app.post("/api/todos/sync", (req, res) => {
 
       // Process each todo from the client
       todos.forEach(todo => {
-        if (todo.id) {
-          // Update existing todo
-          db.run(
-            "UPDATE todos SET status = ? WHERE id = ?",
-            [todo.status, todo.id]
-          );
-        } else {
+        console.log(todo)
+        if (todo.isAdded===1) {
+
           // Insert new todo
           db.run(
             "INSERT INTO todos (title, status) VALUES (?, ?)",
             [todo.title, todo.status]
           );
+          
+        } else {
+          // Update existing todo
+          db.run(
+            "UPDATE todos SET status = ? WHERE id = ?",
+            [todo.status, todo.id]
+          )
+        }
+        if(todo.isDeleted===1){
+          db.run("DELETE FROM todos WHERE id = ?", todo.id)
+
         }
       });
 
@@ -170,6 +177,7 @@ app.post("/api/todos/sync", (req, res) => {
       });
 
     } catch (err) {
+      console.log(err)
       db.run("ROLLBACK");
       res.status(500).json({ error: err.message });
     }
