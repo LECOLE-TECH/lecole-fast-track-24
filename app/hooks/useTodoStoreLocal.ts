@@ -5,10 +5,12 @@ import useDetectNetwork from "./useDetectNetwork";
 import { localDatabase } from "~/services/localDatabase";
 
 interface TodoStoreLocal {
+  db: any;
   todos: TodoLocal[];
   syncStatus: boolean;
   isOnline: boolean;
   setIsOnline: (status: boolean) => void;
+  initialDatabase: () => void;
   fetchTodos: () => Promise<void>;
   addTodo: (title: string) => Promise<void>;
   updateTodoStatus: (
@@ -17,6 +19,9 @@ interface TodoStoreLocal {
   ) => Promise<void>;
   deleteTodo: (id: number) => Promise<void>;
   syncWithBackend: () => Promise<void>;
+  updateTodoPosition: (id: number, position: { x: number; y: number }) => void;
+  clearError: () => void;
+  error: string | null;
 }
 
 export const useTodoStoreLocal = create<TodoStoreLocal>()(
@@ -25,6 +30,8 @@ export const useTodoStoreLocal = create<TodoStoreLocal>()(
       todos: [],
       syncStatus: false,
       isOnline: useDetectNetwork().isOnline,
+      error: null,
+      db: null,
 
       setIsOnline: (status) => {
         set({ isOnline: status });
@@ -32,7 +39,10 @@ export const useTodoStoreLocal = create<TodoStoreLocal>()(
           get().syncWithBackend();
         }
       },
-
+      initialDatabase: async () => {
+        const localDb = await localDatabase.init();
+        set({ db: localDb });
+      },
       fetchTodos: async () => {
         try {
           const todos = await localDatabase.loadLocalData();
@@ -98,6 +108,13 @@ export const useTodoStoreLocal = create<TodoStoreLocal>()(
           set({ syncStatus: false });
         }
       },
+      updateTodoPosition: (id, position) =>
+        set((state) => ({
+          todos: state.todos.map((todo) =>
+            todo.id === id ? { ...todo, position, synced: false } : todo
+          ),
+        })),
+      clearError: () => set({ error: null }),
     }),
     {
       name: "todo-storage",

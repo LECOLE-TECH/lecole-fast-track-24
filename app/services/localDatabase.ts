@@ -5,7 +5,7 @@ class LocalDatbase {
   public db: any = null;
   public initialized: boolean = false;
 
-  async init() {
+  async init(): Promise<any> {
     if (this.initialized) return;
 
     try {
@@ -16,6 +16,8 @@ class LocalDatbase {
 
       await this.createTables();
       this.initialized = true;
+
+      return this.db;
     } catch (error) {
       console.error("Failed to initialize SQLite database:", error);
       throw new Error("Failed to initialize local database");
