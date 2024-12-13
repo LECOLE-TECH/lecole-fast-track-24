@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Todo, TodoLocal } from "~/types/todos";
-import useDetectNetwork from "./useDetectNetwork";
 import { localDatabase } from "~/services/localDatabase";
 
 interface TodoStoreLocal {

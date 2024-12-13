@@ -1,8 +1,10 @@
-import todosService from "../services/todos.service";
+import todosService from "../services/todos.service.js";
 
 export default function handleSocket(io) {
   io.on("connection", (socket) => {
     console.log("Connected");
+
+    io.emit("user-connect-server", { message: "Server Connected" });
 
     socket.on("online-auto-sync", async (data) => {
       if (!Array.isArray(data)) {
@@ -22,6 +24,8 @@ export default function handleSocket(io) {
         });
       }
     });
+
+    socket.emit("user-disconnect-server", { message: "Disconnected Server" });
 
     socket.on("disconnect", () => {
       console.log("User disconnected");

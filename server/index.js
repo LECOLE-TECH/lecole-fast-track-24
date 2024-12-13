@@ -3,6 +3,7 @@ import sqlite3 from "sqlite3";
 import http from "http";
 import { Server } from "socket.io";
 import funcTodoRoute from "./routes/todos.route.js";
+import handleSocket from "./utils/socket.js";
 
 const app = express();
 const port = 3000;
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 funcTodoRoute(app);
+handleSocket(io);
 
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
