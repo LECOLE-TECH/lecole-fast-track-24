@@ -1,13 +1,15 @@
 import type { Route } from "../track-three/+types";
 import { Button } from "~/components/ui/button";
 import { useEffect, useState } from "react";
-import { syncTodos } from "~/apis/todosApi";
 import type { Todo, TodoLocal } from "~/types/todos";
 import TodoColumn from "~/components/todoColumns";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import socket from "~/utils/socket";
 import { useTodoStoreLocal } from "~/hooks/useTodoStoreLocal";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const columns: { id: Todo["status"]; title: string }[] = [
   { id: "backlog", title: "Backlog" },
@@ -27,6 +29,7 @@ export default function TrackThree() {
   const {
     todos,
     db,
+    setIsOnline,
     initialDatabase,
     fetchTodos,
     addTodo,
@@ -35,26 +38,23 @@ export default function TrackThree() {
   } = useTodoStoreLocal();
 
   useEffect(() => {
-    const onConnect = () => {
+    socket.on("user-connect-server", (data) => {
+      toast.success(data.message);
       setIsSocketConnected(true);
-    };
+      setIsOnline(true);
+    });
 
-    const onDisconnect = () => {
+    socket.on("disconnect", () => {
       setIsSocketConnected(false);
-    };
+      setIsOnline(false);
+    });
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-
-    socket.on("user-connect-server", (data) => {});
-
-    socket.on("user-disconnect-server", (data) => {});
+    if (!isSocketConnected) {
+      toast.warning("Disconnected Server");
+    }
 
     return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
       socket.off("user-connect-server");
-      socket.off("user-disconnect-server");
     };
   }, [isSocketConnected]);
 
@@ -124,6 +124,7 @@ export default function TrackThree() {
           </div>
         </div>
       </DndProvider>
+      <ToastContainer />
     </>
   );
 }
