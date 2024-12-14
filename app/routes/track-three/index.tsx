@@ -7,6 +7,7 @@ import TodoColumn from "~/components/todoColumns";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import socket from "~/utils/socket";
+import { useTodoStoreLocal } from "~/hooks/useTodoStoreLocal";
 
 const columns: { id: Todo["status"]; title: string }[] = [
   { id: "backlog", title: "Backlog" },
@@ -19,22 +20,27 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function TrackThree() {
-  const [todos, setTodos] = useState<TodoLocal[]>([]);
   const [error, setError] = useState<string>("");
   const [localDb, setLocalDb] = useState<any>(null);
   const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [isOnline, setIsOnline] = useState(true);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const {
+    todos,
+    db,
+    initialDatabase,
+    fetchTodos,
+    addTodo,
+    updateTodoStatus,
+    syncWithBackend,
+  } = useTodoStoreLocal();
 
   useEffect(() => {
     const onConnect = () => {
       setIsSocketConnected(true);
-      setIsOnline(true);
     };
 
     const onDisconnect = () => {
       setIsSocketConnected(false);
-      setIsOnline(false);
     };
 
     socket.on("connect", onConnect);
@@ -50,39 +56,15 @@ export default function TrackThree() {
       socket.off("user-connect-server");
       socket.off("user-disconnect-server");
     };
-  }, [setIsOnline]);
+  }, [isSocketConnected]);
 
   // Initialize local SQLite database
   useEffect(() => {
-    const initLocalDb = async () => {
-      try {
-        const sqlite3InitModule = (await import("@sqlite.org/sqlite-wasm"))
-          .default;
-        const sqlite3 = await sqlite3InitModule();
-        const db = new sqlite3.oo1.DB("/local-todos.sqlite3", "ct");
-
-        // Create local todos table
-        db.exec(`
-          CREATE TABLE IF NOT EXISTS todos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
-            synced INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-          )
-        `);
-
-        setLocalDb(db);
-        loadLocalData(db);
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Failed to initialize local database");
-      }
-    };
-
     if (typeof window !== "undefined") {
-      initLocalDb();
+      initialDatabase();
     }
+    setLocalDb(db);
+    fetchTodos();
 
     return () => {
       if (localDb) {
@@ -91,121 +73,12 @@ export default function TrackThree() {
     };
   }, []);
 
-  const loadLocalData = (db: any) => {
-    const results: TodoLocal[] = [];
-    db.exec({
-      sql: "SELECT id, title, status, synced, created_at FROM todos ORDER BY created_at DESC",
-      callback: (row: any) => {
-        results.push({
-          id: row[0],
-          title: row[1],
-          status: row[2],
-          synced: Boolean(row[3]),
-          created_at: row[4],
-        });
-      },
-    });
-    setTodos(results);
-  };
-
-  const addTodo = () => {
-    if (!newTodoTitle.trim()) return;
-
-    try {
-      localDb.exec({
-        sql: "INSERT INTO todos (title, synced) VALUES (?, 0)",
-        bind: [newTodoTitle],
-      });
-      setNewTodoTitle("");
-      loadLocalData(localDb);
-    } catch (err: any) {
-      setError("Failed to add todo");
-    }
-  };
-
-  const updateTodoStatus = (todoId: number, newStatus: TodoLocal["status"]) => {
-    try {
-      localDb.exec({
-        sql: "UPDATE todos SET status = ?, synced = 0 WHERE id = ?",
-        bind: [newStatus, todoId],
-      });
-      loadLocalData(localDb);
-    } catch (err: any) {
-      setError("Failed to update todo status");
-    }
-  };
-
-  const syncWithBackend = async () => {
-    try {
-      // Get all unsynced todos
-      const unsyncedTodos: Partial<TodoLocal>[] = [];
-      localDb.exec({
-        sql: "SELECT id, title, status FROM todos WHERE synced = 0",
-        callback: (row: any) => {
-          unsyncedTodos.push({
-            id: row[0],
-            title: row[1],
-            status: row[2],
-          } as const);
-        },
-      });
-
-      // Get updated todos from backend
-      const serverTodos = await syncTodos(unsyncedTodos as TodoLocal[]);
-
-      // Update local database with server data
-      localDb.exec("BEGIN TRANSACTION");
-
-      // Mark all existing todos as synced
-      localDb.exec("UPDATE todos SET synced = 1");
-
-      // Update or insert server todos
-      serverTodos.forEach((todo: Todo) => {
-        // Check if todo exists
-        let exists = false;
-        localDb.exec({
-          sql: "SELECT COUNT(*) as count FROM todos WHERE id = ?",
-          bind: [todo.id],
-          callback: (row: any) => {
-            exists = row[0] > 0;
-          },
-        });
-
-        if (exists) {
-          // Update existing todo
-          localDb.exec({
-            sql: "UPDATE todos SET title = ?, status = ?, synced = 1 WHERE id = ?",
-            bind: [todo.title, todo.status, todo.id],
-          });
-        } else {
-          // Insert new todo
-          localDb.exec({
-            sql: "INSERT INTO todos (id, title, status, synced) VALUES (?, ?, ?, 1)",
-            bind: [todo.id, todo.title, todo.status],
-          });
-        }
-      });
-
-      localDb.exec("COMMIT");
-
-      // Reload local data
-      loadLocalData(localDb);
-    } catch (err: any) {
-      setError("Failed to sync with backend: " + err.message);
-      console.error(err);
-    }
-  };
-
   // Auto-sync every 15 seconds
   useEffect(() => {
     if (!localDb) return;
     const interval = setInterval(syncWithBackend, 15000);
     return () => clearInterval(interval);
   }, [localDb]);
-
-  const filterTodosByStatus = (status: TodoLocal["status"]) => {
-    return todos.filter((todo) => todo.status === status);
-  };
 
   return (
     <>
@@ -234,7 +107,7 @@ export default function TrackThree() {
               className='flex-1 px-3 py-2 border rounded bg-white'
               placeholder='Add new todo...'
             />
-            <Button onClick={addTodo}>Add Todo</Button>
+            <Button onClick={() => addTodo(newTodoTitle)}>Add Todo</Button>
           </div>
 
           {/* Todos Columns */}
@@ -242,7 +115,7 @@ export default function TrackThree() {
             {columns.map((column) => (
               <TodoColumn
                 key={column.id}
-                id={column.id}
+                id={column.id} // backlog | in_progres | done
                 title={column.title}
                 todos={todos.filter((todo) => todo.status === column.id)}
                 updateTodoStatus={updateTodoStatus}
