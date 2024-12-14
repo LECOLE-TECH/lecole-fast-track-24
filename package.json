@@ -29,6 +29,7 @@
     "react-toastify": "^10.0.6",
     "sequelize": "^6.37.5",
     "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "sqlite3": "^5.1.7",
     "style-loader": "^4.0.0",
     "tailwind-merge": "^2.5.5",

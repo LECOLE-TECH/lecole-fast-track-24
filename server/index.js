@@ -4,7 +4,15 @@ import http from "http";
 import cors from 'cors';
 import { sequelize, Product, User } from "../db/db.js"; // Import Sequelize và các models
 import { where } from "sequelize";
+import { data } from "react-router";
 const app = express();
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Access-Control-Allow-Methods", "PUT, GET, POST, DELETE, OPTIONS");
+  next();
+});
 const port = 3000;
 const server = http.createServer(app);
 const io = new Server(server);
@@ -83,7 +91,6 @@ app.post("/api/register", async (req, res) => {
   if (!username || !roles || !secret_phrase) {
     return res.status(400).json({ error: "Username, roles, and secret phrase are required" });
   }
-
   try {
     await User.create({ username, roles, secret_phrase });
     res.status(201).json({ message: "User created successfully" });
@@ -92,6 +99,90 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+app.post("/api/login", async (req, res) => {
+  const { username, roles, secret_phrase } = req.body;
+  if (!username || !roles || !secret_phrase) {
+    return res.status(400).json({ error: "Username, roles, and secret phrase are required" });
+  }
+
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (user.roles !== roles || user.secret_phrase !== secret_phrase) {
+      return res.status(401).json({ error: "Invalid roles or secret phrase" });
+    }
+    res.status(200).json({ message: "Login successful", user: { id:user.id,username: user.username, roles: user.roles } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//  API USER
+app.get("/api/user", async (req, res) => {
+  try {
+    const users = await User.findAll();
+    res.status(201).json({ message: "User created successfully",users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post("/api/user", async (req, res) => {
+  const { username, roles,secret_phrase } = req.body;
+  if (!username || !roles || !secret_phrase) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+  try {
+    const newUser= await User.create({
+      username,
+      roles,
+      secret_phrase,
+    });
+    return res.status(201).json(newUser); // Trả về sản phẩm mới
+  } catch (error) {
+    console.error("Error creating product:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+app.patch(`/api/user/:id`, async (req, res) => {
+  const { id } = req.params;
+  const { username, roles, secret_phrase } = req.body;
+
+  try {
+    const updatedRowsCount = await User.update(
+      { username, roles, secret_phrase },
+      { where: { id } } 
+    );
+
+    if (updatedRowsCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Corrected response
+    res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating User:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+app.delete(`/api/user/:id`, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const delUser = await User.destroy({
+      where: { id }
+    });
+
+    if (delUser) {
+      res.status(200).json({ message: "Product deleted successfully", delUser });
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 
 // Socket.IO logic
 io.on("connection", (socket) => {
