@@ -12,6 +12,7 @@ interface TodoItemProps {
 
 export const TodoItem: React.FC<TodoItemProps> = React.memo(
   ({ todo, index }) => {
+    console.log(`todo dang muon xoa la: ${JSON.stringify(todo)}`);
     const deleteTodo = useTodoStoreLocal((state) => state.deleteTodo);
 
     const [{ isDragging }, drag] = useDrag(

@@ -80,6 +80,15 @@ export default function TrackThree() {
     return () => clearInterval(interval);
   }, [localDb]);
 
+  const handleAddTodo = () => {
+    if (newTodoTitle != "") {
+      addTodo(newTodoTitle);
+      setNewTodoTitle("");
+    } else {
+      toast.error("Please enter todo title");
+    }
+  };
+
   return (
     <>
       <DndProvider backend={HTML5Backend}>
@@ -107,7 +116,7 @@ export default function TrackThree() {
               className='flex-1 px-3 py-2 border rounded bg-white'
               placeholder='Add new todo...'
             />
-            <Button onClick={() => addTodo(newTodoTitle)}>Add Todo</Button>
+            <Button onClick={handleAddTodo}>Add Todo</Button>
           </div>
 
           {/* Todos Columns */}
