@@ -101,27 +101,28 @@ export const syncTodos = (todos) => {
 				}
 
 				const updateStmt = db.prepare(
-					"UPDATE todos SET status = ? WHERE id = ?",
+					"UPDATE todos SET title = ?, status = ? WHERE id = ?",
 				);
 				const insertStmt = db.prepare(
-					"INSERT INTO todos (title, status) VALUES (?, ?)",
+					"INSERT INTO todos (id, title, status) VALUES (?, ?, ?)",
 				);
 
 				todos.forEach((todo) => {
-					if (todo.id) {
+					const todoId = todo.id ? BigInt(todo.id) : null;
+					if (todoId) {
 						db.get(
 							"SELECT id FROM todos WHERE id = ?",
-							[todo.id],
+							[todoId.toString()],
 							(err, row) => {
 								if (err) {
 									throw err;
 								}
 								if (row) {
 									console.log("Updating existing todo:", todo);
-									updateStmt.run([todo.status, todo.id]);
+									updateStmt.run([todo.title, todo.status, todoId.toString()]);
 								} else {
-									console.log("Todo not found:", todo.id);
-									insertStmt.run([todo.title, todo.status]);
+									console.log("Todo not found:", todoId.toString());
+									insertStmt.run([todoId.toString(), todo.title, todo.status]);
 									console.log("Inserted new todo:", todo);
 								}
 							},

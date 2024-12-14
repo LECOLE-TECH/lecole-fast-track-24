@@ -6,9 +6,10 @@ import DroppableColumn from "~/components/track-three/DropableColumn";
 import DraggableTodo from "~/components/track-three/DraggableTodo";
 import { SyncIndicator } from "~/components/track-three/SyncIndicator";
 import { useOfflineSync } from "~/hooks/useOfflineSync";
+import { snowflakeIdGenerator } from "~/lib/snowflake";
 
 interface Todo {
-	id: number;
+	id: bigint;
 	title: string;
 	status: "backlog" | "in_progress" | "done";
 	synced: boolean;
@@ -136,7 +137,7 @@ export default function TrackThree() {
 				// Create local todos table
 				db.exec(`
           CREATE TABLE IF NOT EXISTS todos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
             synced INTEGER DEFAULT 0,
@@ -178,7 +179,7 @@ export default function TrackThree() {
 			sql: "SELECT id, title, status, synced, created_at, updated_at FROM todos",
 			callback: (row: any) => {
 				results.push({
-					id: row[0],
+					id: BigInt(row[0]),
 					title: row[1],
 					status: row[2],
 					synced: Boolean(row[3]),
@@ -194,19 +195,21 @@ export default function TrackThree() {
 		if (!newTodoTitle.trim()) return;
 
 		try {
+			// Generate Snowflake ID
+			const todoId = snowflakeIdGenerator.generate();
+
 			localDb.exec("BEGIN TRANSACTION");
 
-			// Insert the todo
+			// Insert the todo with Snowflake ID
 			localDb.exec({
-				sql: "INSERT INTO todos (title, synced) VALUES (?, 0)",
-				bind: [newTodoTitle],
+				sql: "INSERT INTO todos (id, title, synced) VALUES (?, ?, 0)",
+				bind: [todoId.toString(), newTodoTitle],
 			});
 
 			// Log the change
-			const lastId = localDb.exec("SELECT last_insert_rowid()")[0];
 			localDb.exec({
 				sql: "INSERT INTO sync_log (todo_id, action, data) VALUES (?, 'create', ?)",
-				bind: [lastId, JSON.stringify({ title: newTodoTitle })],
+				bind: [todoId.toString(), JSON.stringify({ title: newTodoTitle })],
 			});
 
 			localDb.exec("COMMIT");
@@ -218,18 +221,18 @@ export default function TrackThree() {
 		}
 	};
 
-	const updateTodoStatus = (todoId: number, newStatus: Todo["status"]) => {
+	const updateTodoStatus = (todoId: bigint, newStatus: Todo["status"]) => {
 		try {
 			localDb.exec("BEGIN TRANSACTION");
 
 			localDb.exec({
 				sql: "UPDATE todos SET status = ?, synced = 0 WHERE id = ?",
-				bind: [newStatus, todoId],
+				bind: [newStatus, todoId.toString()],
 			});
 
 			localDb.exec({
 				sql: "INSERT INTO sync_log (todo_id, action, data) VALUES (?, 'update', ?)",
-				bind: [todoId, JSON.stringify({ status: newStatus })],
+				bind: [todoId.toString(), JSON.stringify({ status: newStatus })],
 			});
 
 			localDb.exec("COMMIT");
@@ -255,7 +258,7 @@ export default function TrackThree() {
 		const { active, over } = event;
 
 		if (over && active.id !== over.id) {
-			const todoId = parseInt(active.id as string);
+			const todoId = BigInt(active.id as string);
 			const newStatus = over.id as Todo["status"];
 			updateTodoStatus(todoId, newStatus);
 		}

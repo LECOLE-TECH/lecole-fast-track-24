@@ -1,7 +1,7 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 interface Todo {
-	id: number;
+	id: bigint;
 	title: string;
 	status: "backlog" | "in_progress" | "done";
 	synced: boolean;
@@ -13,7 +13,7 @@ function DraggableTodo({
 	updateStatus,
 }: {
 	todo: Todo;
-	updateStatus: (id: number, status: Todo["status"]) => void;
+	updateStatus: (id: bigint, status: Todo["status"]) => void;
 }) {
 	const { attributes, listeners, setNodeRef, transform } = useDraggable({
 		id: todo.id.toString(),
