@@ -1,6 +1,16 @@
 import { syncTodos } from "~/apis/todosApi";
 import type { Todo, TodoLocal } from "~/types/todos";
 
+/**
+ * Never(!) rely on garbage collection to clean up DBs and
+ * (especially) prepared statements. Always wrap theire lifetimes
+ * in a try/finally construct. By and large, client code can entirely
+ * avoid lifetime-related complications of prepared statments objects
+ * using the DB.exec() method of SQL execution.
+ *
+ * More information on: https://sqlite.org/wasm/doc/trunk/api-oo1.md
+ */
+
 class LocalDatbase {
   public db: any = null;
   public initialized: boolean = false;
@@ -12,6 +22,14 @@ class LocalDatbase {
       const sqlite3InitModule = (await import("@sqlite.org/sqlite-wasm"))
         .default;
       const sqlite3 = await sqlite3InitModule();
+
+      /**
+       *  {
+       *    filename: db filename,
+       *    flags: open-mode flags,
+       *    vfs: name of the sqlite3_vfs to use,
+       *  }
+       */
       this.db = new sqlite3.oo1.DB("/local-todos.sqlite3", "ct");
 
       await this.createTables();
@@ -26,46 +44,60 @@ class LocalDatbase {
 
   private async createTables() {
     if (!this.db) throw new Error("Database not initialized");
-
-    this.db.exec(`
-        CREATE TABLE IF NOT EXISTS todos (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
-          synced INTEGER DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
+    try {
+      this.db.exec(`
+          CREATE TABLE IF NOT EXISTS todos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
+            synced INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while creating tables");
+    }
   }
 
   public async loadLocalData(): Promise<TodoLocal[]> {
     if (!this.db) throw new Error("Database not initialized");
 
-    const results: TodoLocal[] = [];
-    this.db.exec({
-      sql: "SELECT id, title, status, synced, created_at FROM todos ORDER BY created_at DESC",
-      callback: (row: any) => {
-        results.push({
-          id: row[0],
-          title: row[1],
-          status: row[2],
-          synced: Boolean(row[3]),
-          created_at: row[4],
-        });
-      },
-    });
-    return results;
+    try {
+      const results: TodoLocal[] = [];
+      this.db.exec({
+        sql: "SELECT id, title, status, synced, created_at FROM todos ORDER BY created_at DESC",
+        callback: (row: any) => {
+          results.push({
+            id: row[0],
+            title: row[1],
+            status: row[2],
+            synced: Boolean(row[3]),
+            created_at: row[4],
+          });
+        },
+      });
+      return results;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while load local data");
+    }
   }
 
   public async addTodo(title: string): Promise<TodoLocal[]> {
     if (!this.db) throw new Error("Database not initialized");
 
-    this.db.exec({
-      sql: "INSERT INTO todos (title, synced) VALUES (?, 0)",
-      bind: [title],
-    });
+    try {
+      this.db.exec({
+        sql: "INSERT INTO todos (title, synced) VALUES (?, 0)",
+        bind: [title],
+      });
 
-    return await this.loadLocalData();
+      return await this.loadLocalData();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while adding Todo");
+    }
   }
 
   public async updateTodoStatus(
@@ -74,82 +106,101 @@ class LocalDatbase {
   ): Promise<TodoLocal[]> {
     if (!this.db) throw new Error("Database not initialized");
 
-    this.db.exec({
-      sql: "UPDATE todos SET status = ?, synced = 0 WHERE id = ?",
-      bind: [newStatus, todoId],
-    });
+    try {
+      this.db.exec({
+        sql: "UPDATE todos SET status = ?, synced = 0 WHERE id = ?",
+        bind: [newStatus, todoId],
+      });
 
-    return await this.loadLocalData();
+      return await this.loadLocalData();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while updating TodoStatus");
+    }
   }
 
   public async deleteTodo(todoId: number): Promise<TodoLocal[]> {
     if (!this.db) throw new Error("Database not initialized");
 
-    this.db.exec({
-      sql: "DELETE FROM todos WHERE id = ?",
-      bind: [todoId],
-    });
+    try {
+      this.db.exec({
+        sql: "DELETE FROM todos WHERE id = ?",
+        bind: [todoId],
+      });
 
-    return await this.loadLocalData();
+      return await this.loadLocalData();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while deleting Todo");
+    }
   }
 
   public async syncWithBackend(): Promise<TodoLocal[]> {
-    const unsyncedTodos = await this.loadAllUnsyncedTodos();
-    const serverTodos = await syncTodos(unsyncedTodos as TodoLocal[]);
+    try {
+      const unsyncedTodos = await this.loadAllUnsyncedTodos();
+      const serverTodos = await syncTodos(unsyncedTodos as TodoLocal[]);
 
-    // Update local database with server data
-    this.db.exec("BEGIN TRANSACTION");
+      // Update local database with server data
+      this.db.exec("BEGIN TRANSACTION");
 
-    // Mark all existing todos as synced
-    this.db.exec("UPDATE todos SET synced = 1");
+      // Mark all existing todos as synced
+      this.db.exec("UPDATE todos SET synced = 1");
 
-    // Update or insert server todos
-    serverTodos.forEach((todo: Todo) => {
-      // Check if todo exists
-      let exists = false;
-      this.db.exec({
-        sql: "SELECT COUNT(*) as count FROM todos WHERE id = ?",
-        bind: [todo.id],
-        callback: (row: any) => {
-          exists = row[0] > 0;
-        },
+      // Update or insert server todos
+      serverTodos.forEach((todo: Todo) => {
+        // Check if todo exists
+        let exists = false;
+        this.db.exec({
+          sql: "SELECT COUNT(*) as count FROM todos WHERE id = ?",
+          bind: [todo.id],
+          callback: (row: any) => {
+            exists = row[0] > 0;
+          },
+        });
+
+        if (exists) {
+          // Update existing todo
+          this.db.exec({
+            sql: "UPDATE todos SET title = ?, status = ?, synced = 1 WHERE id = ?",
+            bind: [todo.title, todo.status, todo.id],
+          });
+        } else {
+          // Insert new todo
+          this.db.exec({
+            sql: "INSERT INTO todos (id, title, status, synced) VALUES (?, ?, ?, 1)",
+            bind: [todo.id, todo.title, todo.status],
+          });
+        }
       });
 
-      if (exists) {
-        // Update existing todo
-        this.db.exec({
-          sql: "UPDATE todos SET title = ?, status = ?, synced = 1 WHERE id = ?",
-          bind: [todo.title, todo.status, todo.id],
-        });
-      } else {
-        // Insert new todo
-        this.db.exec({
-          sql: "INSERT INTO todos (id, title, status, synced) VALUES (?, ?, ?, 1)",
-          bind: [todo.id, todo.title, todo.status],
-        });
-      }
-    });
+      this.db.exec("COMMIT");
 
-    this.db.exec("COMMIT");
-
-    return await this.loadLocalData();
+      return await this.loadLocalData();
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while syncing with Backend");
+    }
   }
 
   public async loadAllUnsyncedTodos(): Promise<Partial<TodoLocal>[]> {
     if (!this.db) throw new Error("Database not initialized");
-
-    const unsyncedTodos: Partial<TodoLocal>[] = [];
-    this.db.exec({
-      sql: "SELECT id, title, status FROM todos WHERE synced = 0",
-      callback: (row: any) => {
-        unsyncedTodos.push({
-          id: row[0],
-          title: row[1],
-          status: row[2],
-        } as const);
-      },
-    });
-    return unsyncedTodos;
+    try {
+      const unsyncedTodos: Partial<TodoLocal>[] = [];
+      this.db.exec({
+        sql: "SELECT id, title, status FROM todos WHERE synced = 0",
+        callback: (row: any) => {
+          unsyncedTodos.push({
+            id: row[0],
+            title: row[1],
+            status: row[2],
+          } as const);
+        },
+      });
+      return unsyncedTodos;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error while loading all unsynced Todos");
+    }
   }
 
   close(): void {
