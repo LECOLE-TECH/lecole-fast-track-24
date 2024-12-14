@@ -30,8 +30,15 @@ class LocalDatbase {
        *    vfs: name of the sqlite3_vfs to use,
        *  }
        */
-      this.db = new sqlite3.oo1.DB("/local-todos.sqlite3", "ct");
-
+      this.db =
+        "opfs" in sqlite3
+          ? new sqlite3.oo1.OpfsDb("/local-todos.sqlite3")
+          : new sqlite3.oo1.DB("/local-todos.sqlite3", "ct");
+      console.log(
+        "opfs" in sqlite3
+          ? `OPFS is available, created persisted database at ${this.db.filename}`
+          : `OPFS is not available, created transient database ${this.db.filename}`
+      );
       await this.createTables();
       this.initialized = true;
 

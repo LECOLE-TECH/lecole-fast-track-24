@@ -716,10 +716,10 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.2.tgz#821f8442f4175d8f0467b9daf26e3a18e2d02af2"
   integrity sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==
 
-"@sqlite.org/sqlite-wasm@^3.47.1-build1":
-  version "3.47.1-build1"
-  resolved "https://registry.yarnpkg.com/@sqlite.org/sqlite-wasm/-/sqlite-wasm-3.47.1-build1.tgz#d1ec9ed8be6131e8cbd42e66c2e8c65713d1f928"
-  integrity sha512-3qnVGab3sjJ8ov0ce1rQGZrMkglYEQ/q5fnq1s1BpRWFMYsiJVaLD1zKepcI9E9r3qx7929+2G27Hfsasvrm6Q==
+"@sqlite.org/sqlite-wasm@^3.47.2-build1":
+  version "3.47.2-build1"
+  resolved "https://registry.yarnpkg.com/@sqlite.org/sqlite-wasm/-/sqlite-wasm-3.47.2-build1.tgz#0d858fbf3f8919700aa519b26cc0786a5daaf218"
+  integrity sha512-jDRWfcPYmOsJGN1GplXbw5ZlB+PSzihw1EDElzqkenSI+yK7QYOfwhzYnBR9H8Bv5MHi6EUMb4t3CnLfXCSA8A==
 
 "@tootallnate/once@1":
   version "1.1.2"
