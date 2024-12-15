@@ -210,6 +210,9 @@ self.onmessage = async (event) => {
       case "UPDATE_TODO_STATUS":
         results = await updateTodoStatus(payload.id, payload.status);
         break;
+      case "DELETE_TODO":
+        results = await deleteTodo(payload.id);
+        break;
       case "SYNC_WITH_BACKEND":
         results = await syncWithBackend();
         break;
