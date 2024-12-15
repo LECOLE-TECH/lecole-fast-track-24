@@ -152,9 +152,9 @@ export default function TrackThree() {
     return () => clearInterval(interval);
   }, [isSocketConnected]);
 
-  const handleAddTodo = () => {
+  const handleAddTodo = async () => {
     if (newTodoTitle != "") {
-      addTodo();
+      await addTodo();
       setNewTodoTitle("");
     } else {
       toast.error("Please enter todo title");
