@@ -32,6 +32,7 @@ export default function TrackThree() {
   ); // Should log "true"
   console.log(`Worker co ko: ${typeof Worker !== "undefined"}`);
 
+  //Initialize local database
   useEffect(() => {
     if (typeof Worker !== "undefined") {
       const newWorker = new Worker(new URL("worker.ts", import.meta.url), {
@@ -45,6 +46,7 @@ export default function TrackThree() {
     }
   }, []);
 
+  //Send message to worker
   const sendWorkerMessage = useCallback(
     (type: string, payload?: any): Promise<TodoLocal[] | any> => {
       return new Promise((resolve, reject) => {
@@ -70,9 +72,10 @@ export default function TrackThree() {
   );
 
   useEffect(() => {
-    socket.on("user-connect-server", (data) => {
+    socket.on("user-connect-server", async (data) => {
       toast.success(data.message);
       setIsSocketConnected(true);
+      await syncWithBackend();
     });
 
     socket.on("disconnect", () => {
@@ -93,7 +96,7 @@ export default function TrackThree() {
 
     try {
       const todosLocal = await sendWorkerMessage("ADD_TODO", {
-        title: newTodoTitle,
+        title: newTodoTitle.trim(),
       });
       setTodos(todosLocal);
       setNewTodoTitle("");
