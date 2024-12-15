@@ -1,6 +1,5 @@
 import React from "react";
 import { useDrop } from "react-dnd";
-import { motion } from "framer-motion";
 import type { Todo, TodoLocal } from "~/types/todos";
 import { TodoItem } from "./todoItem";
 

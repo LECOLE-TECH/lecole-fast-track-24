@@ -6,7 +6,6 @@ import TodoColumn from "~/components/todoColumns";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import socket from "~/utils/socket";
-import { useTodoStoreLocal } from "~/hooks/useTodoStoreLocal";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -24,7 +23,6 @@ export function meta({}: Route.MetaArgs) {
 export default function TrackThree() {
   const [todos, setTodos] = useState<TodoLocal[]>([]);
   const [error, setError] = useState<string>("");
-  const [localDb, setLocalDb] = useState<any>(null);
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [worker, setWorker] = useState<Worker | null>(null);
@@ -132,10 +130,10 @@ export default function TrackThree() {
 
   // Auto-sync every 15 seconds
   useEffect(() => {
-    if (!localDb) return;
+    if (!isSocketConnected) return;
     const interval = setInterval(syncWithBackend, 15000);
     return () => clearInterval(interval);
-  }, [localDb]);
+  }, [isSocketConnected]);
 
   const handleAddTodo = () => {
     if (newTodoTitle != "") {
