@@ -8,22 +8,22 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   css: {
     postcss: {
-      plugins: [tailwindcss, autoprefixer]
-    }
+      plugins: [tailwindcss, autoprefixer],
+    },
   },
   plugins: [reactRouter(), tsconfigPaths()],
   resolve: {
     alias: {
-      "~": path.resolve(__dirname, "./app")
-    }
+      "~": path.resolve(__dirname, "./app"),
+    },
   },
   server: {
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp"
-    }
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
   },
   optimizeDeps: {
-    exclude: ["@sqlite.org/sqlite-wasm"]
-  }
+    exclude: ["@sqlite.org/sqlite-wasm"],
+  },
 });

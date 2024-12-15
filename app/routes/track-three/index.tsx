@@ -36,7 +36,16 @@ export default function TrackThree() {
     updateTodoStatus,
     syncWithBackend,
   } = useTodoStoreLocal();
+  const [worker, setWorker] = useState(
+    typeof Worker !== "undefined"
+      ? new Worker(new URL("worker.ts", import.meta.url), { type: "module" })
+      : null
+  );
 
+  console.log(
+    `SharedArrayBuffer co ko: ${typeof SharedArrayBuffer !== "undefined"}`
+  ); // Should log "true"
+  console.log(`Worker co ko: ${typeof Worker !== "undefined"}`);
   useEffect(() => {
     socket.on("user-connect-server", (data) => {
       toast.success(data.message);
