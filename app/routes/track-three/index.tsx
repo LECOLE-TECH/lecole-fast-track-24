@@ -117,6 +117,20 @@ export default function TrackThree() {
     [sendWorkerMessage]
   );
 
+  const deleteTodo = useCallback(
+    async (todoId: number) => {
+      try {
+        const todosLocal = await sendWorkerMessage("DELETE_TODO", {
+          id: todoId,
+        });
+        setTodos(todosLocal);
+      } catch (error: any) {
+        setError(error.message || "Failed to delete todo");
+      }
+    },
+    [sendWorkerMessage]
+  );
+
   const syncWithBackend = useCallback(async () => {
     try {
       const syncedTodos = await sendWorkerMessage("SYNC_WITH_BACKEND");
@@ -183,6 +197,7 @@ export default function TrackThree() {
                 title={column.title}
                 todos={todos.filter((todo) => todo.status === column.id)}
                 updateTodoStatus={updateTodoStatus}
+                deleteTodo={deleteTodo}
               />
             ))}
           </div>

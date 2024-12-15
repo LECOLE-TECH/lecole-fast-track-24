@@ -2,18 +2,17 @@ import React from "react";
 import { useDrag } from "react-dnd";
 import { motion } from "framer-motion";
 import { Trash } from "lucide-react";
-import { useTodoStoreLocal } from "~/hooks/useTodoStoreLocal";
 import type { TodoLocal } from "~/types/todos";
 
 interface TodoItemProps {
   todo: TodoLocal;
   index: number;
+  deleteTodo: (todoId: number) => void;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = React.memo(
-  ({ todo, index }) => {
+  ({ todo, index, deleteTodo }) => {
     console.log(`todo dang muon xoa la: ${JSON.stringify(todo)}`);
-    const deleteTodo = useTodoStoreLocal((state) => state.deleteTodo);
 
     const [{ isDragging }, drag] = useDrag(
       () => ({

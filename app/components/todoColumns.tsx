@@ -8,10 +8,11 @@ interface TodoColumnProps {
   title: string;
   todos: TodoLocal[];
   updateTodoStatus: (todoId: number, newStatus: Todo["status"]) => void;
+  deleteTodo: (todoId: number) => void;
 }
 
 const TodoColumn: React.FC<TodoColumnProps> = React.memo(
-  ({ id, title, todos, updateTodoStatus }) => {
+  ({ id, title, todos, updateTodoStatus, deleteTodo }) => {
     const [{ canDrop, isOver }, drop] = useDrop(
       () => ({
         accept: "TODO",
@@ -43,7 +44,12 @@ const TodoColumn: React.FC<TodoColumnProps> = React.memo(
         <h2 className='font-bold mb-4'>{title}</h2>
         <div className='space-y-2'>
           {todos.map((todo, index) => (
-            <TodoItem key={todo.id} todo={todo} index={index} />
+            <TodoItem
+              key={todo.id}
+              todo={todo}
+              index={index}
+              deleteTodo={deleteTodo}
+            />
           ))}
         </div>
       </div>
