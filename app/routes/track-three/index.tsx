@@ -1,6 +1,6 @@
 import type { Route } from "../track-three/+types";
 import { Button } from "~/components/ui/button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Todo, TodoLocal } from "~/types/todos";
 import TodoColumn from "~/components/todoColumns";
 import { DndProvider } from "react-dnd";
@@ -22,40 +22,63 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function TrackThree() {
+  const [todos, setTodos] = useState<TodoLocal[]>([]);
   const [error, setError] = useState<string>("");
   const [localDb, setLocalDb] = useState<any>(null);
   const [newTodoTitle, setNewTodoTitle] = useState("");
   const [isSocketConnected, setIsSocketConnected] = useState(false);
-  const {
-    todos,
-    db,
-    setIsOnline,
-    initialDatabase,
-    fetchTodos,
-    addTodo,
-    updateTodoStatus,
-    syncWithBackend,
-  } = useTodoStoreLocal();
-  const [worker, setWorker] = useState(
-    typeof Worker !== "undefined"
-      ? new Worker(new URL("worker.ts", import.meta.url), { type: "module" })
-      : null
-  );
+  const [worker, setWorker] = useState<Worker | null>(null);
 
   console.log(
     `SharedArrayBuffer co ko: ${typeof SharedArrayBuffer !== "undefined"}`
   ); // Should log "true"
   console.log(`Worker co ko: ${typeof Worker !== "undefined"}`);
+
+  useEffect(() => {
+    if (typeof Worker !== "undefined") {
+      const newWorker = new Worker(new URL("worker.ts", import.meta.url), {
+        type: "module",
+      });
+      setWorker(newWorker);
+
+      return () => {
+        newWorker.terminate();
+      };
+    }
+  }, []);
+
+  const sendWorkerMessage = useCallback(
+    (type: string, payload?: any): Promise<TodoLocal[] | any> => {
+      return new Promise((resolve, reject) => {
+        if (!worker) {
+          reject(new Error("Worker not initialized"));
+          return;
+        }
+
+        const messageHandler = (event: MessageEvent) => {
+          worker.removeEventListener("message", messageHandler);
+          if (event.data.type === "SUCCESS") {
+            resolve(event.data.payload);
+          } else {
+            reject(new Error(event.data.payload));
+          }
+        };
+
+        worker.addEventListener("message", messageHandler);
+        worker.postMessage({ type, payload });
+      });
+    },
+    [worker]
+  );
+
   useEffect(() => {
     socket.on("user-connect-server", (data) => {
       toast.success(data.message);
       setIsSocketConnected(true);
-      setIsOnline(true);
     });
 
     socket.on("disconnect", () => {
       setIsSocketConnected(false);
-      setIsOnline(false);
     });
 
     if (!isSocketConnected) {
@@ -67,20 +90,45 @@ export default function TrackThree() {
     };
   }, [isSocketConnected]);
 
-  // Initialize local SQLite database
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      initialDatabase();
-    }
-    setLocalDb(db);
-    fetchTodos();
+  const addTodo = useCallback(async () => {
+    if (!newTodoTitle.trim()) return;
 
-    return () => {
-      if (localDb) {
-        localDb.close();
+    try {
+      const todosLocal = await sendWorkerMessage("ADD_TODO", {
+        title: newTodoTitle,
+      });
+      setTodos(todosLocal);
+      setNewTodoTitle("");
+    } catch (err: any) {
+      setError(err.message || "Failed to add todo");
+    }
+  }, [newTodoTitle, sendWorkerMessage]);
+
+  const updateTodoStatus = useCallback(
+    async (todoId: number, newStatus: Todo["status"]) => {
+      try {
+        const todosLocal = await sendWorkerMessage("UPDATE_TODO_STATUS", {
+          id: todoId,
+          status: newStatus,
+        });
+        setTodos(todosLocal);
+      } catch (error: any) {
+        setError(error.message || "Failed to update todo status");
       }
-    };
-  }, []);
+    },
+    [sendWorkerMessage]
+  );
+
+  const syncWithBackend = useCallback(async () => {
+    try {
+      const syncedTodos = await sendWorkerMessage("SYNC_WITH_BACKEND");
+      setTodos(syncedTodos);
+      toast.success("Synced with backend successfully");
+    } catch (err: any) {
+      setError(err.message || "Failed to sync with backend");
+      toast.error("Failed to sync with backend");
+    }
+  }, [sendWorkerMessage]);
 
   // Auto-sync every 15 seconds
   useEffect(() => {
@@ -91,7 +139,7 @@ export default function TrackThree() {
 
   const handleAddTodo = () => {
     if (newTodoTitle != "") {
-      addTodo(newTodoTitle);
+      addTodo();
       setNewTodoTitle("");
     } else {
       toast.error("Please enter todo title");

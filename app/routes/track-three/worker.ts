@@ -2,10 +2,12 @@ import sqlite3InitModule from "@sqlite.org/sqlite-wasm";
 import { syncTodos } from "~/apis/todosApi";
 import type { Todo, TodoLocal } from "~/types/todos";
 
-export const initializeSQLite = async (): Promise<any> => {
+let db: any = null;
+
+export const initializeSQLite = async () => {
   try {
     const sqlite3 = await sqlite3InitModule();
-    return start(sqlite3);
+    await start(sqlite3);
   } catch (error) {
     console.log(error);
     throw new Error("Error while initializing SQLite");
@@ -26,12 +28,12 @@ const createTable = async (db: any): Promise<void> => {
         `);
   } catch (error) {
     console.error(error);
-    throw new Error("Error while creating tables");
+    throw new Error("Error while creating tables on worker");
   }
 };
 
-const start = async (sqlite3: any): Promise<any> => {
-  const db =
+const start = async (sqlite3: any): Promise<void> => {
+  db =
     "opfs" in sqlite3
       ? new sqlite3.oo1.OpfsDb("/local-todos.sqlite3")
       : new sqlite3.oo1.DB("/local-todos.sqlite3", "ct");
@@ -41,11 +43,11 @@ const start = async (sqlite3: any): Promise<any> => {
       : `OPFS is not available, created transient database ${db.filename}`
   );
 
-  createTable(db);
-  return db;
+  await createTable(db);
+  await loadLocalData();
 };
 
-export const loadLocalData = async (db: any): Promise<TodoLocal[]> => {
+export const loadLocalData = async (): Promise<TodoLocal[]> => {
   if (!db)
     throw new Error("Database not initialized before loading local data");
 
@@ -70,9 +72,7 @@ export const loadLocalData = async (db: any): Promise<TodoLocal[]> => {
   }
 };
 
-export const loadAllUnsyncedTodos = async (
-  db: any
-): Promise<Partial<TodoLocal>[]> => {
+export const loadAllUnsyncedTodos = async (): Promise<Partial<TodoLocal>[]> => {
   if (!db)
     throw new Error(
       "Database not initialized before loading all unsycned todos"
@@ -96,7 +96,7 @@ export const loadAllUnsyncedTodos = async (
   }
 };
 
-export const addTodo = async (db: any, title: string): Promise<TodoLocal[]> => {
+export const addTodo = async (title: string): Promise<TodoLocal[]> => {
   if (!db) throw new Error("Database not initialized before adding todo");
 
   try {
@@ -105,7 +105,7 @@ export const addTodo = async (db: any, title: string): Promise<TodoLocal[]> => {
       bind: [title],
     });
 
-    return await loadLocalData(db);
+    return await loadLocalData();
   } catch (error) {
     console.error(error);
     throw new Error("Error while adding Todo");
@@ -113,7 +113,6 @@ export const addTodo = async (db: any, title: string): Promise<TodoLocal[]> => {
 };
 
 export const updateTodoStatus = async (
-  db: any,
   todoId: number,
   newStatus: Todo["status"]
 ): Promise<TodoLocal[]> => {
@@ -125,17 +124,14 @@ export const updateTodoStatus = async (
       bind: [newStatus, todoId],
     });
 
-    return await loadLocalData(db);
+    return await loadLocalData();
   } catch (error) {
     console.error(error);
     throw new Error("Error while updating TodoStatus");
   }
 };
 
-export const deleteTodo = async (
-  db: any,
-  todoId: number
-): Promise<TodoLocal[]> => {
+export const deleteTodo = async (todoId: number): Promise<TodoLocal[]> => {
   if (!db) throw new Error("Database not initialized before deleting todo");
 
   try {
@@ -144,18 +140,18 @@ export const deleteTodo = async (
       bind: [todoId],
     });
 
-    return await loadLocalData(db);
+    return await loadLocalData();
   } catch (error) {
     console.error(error);
     throw new Error("Error while deleting Todo");
   }
 };
 
-export const syncWithBackend = async (db: any): Promise<TodoLocal[]> => {
+export const syncWithBackend = async (): Promise<TodoLocal[]> => {
   if (!db)
     throw new Error("Database not initialized before syncing with backend");
   try {
-    const unsyncedTodos = await loadAllUnsyncedTodos(db);
+    const unsyncedTodos = await loadAllUnsyncedTodos();
     const serverTodos = await syncTodos(unsyncedTodos as TodoLocal[]);
 
     // Update local database with server data
@@ -193,7 +189,7 @@ export const syncWithBackend = async (db: any): Promise<TodoLocal[]> => {
 
     db.exec("COMMIT");
 
-    return await loadLocalData(db);
+    return await loadLocalData();
   } catch (error) {
     console.error(error);
     throw new Error("Error while syncing with Backend");
@@ -201,3 +197,27 @@ export const syncWithBackend = async (db: any): Promise<TodoLocal[]> => {
 };
 
 initializeSQLite();
+
+self.onmessage = async (event) => {
+  const { type, payload } = event.data;
+
+  try {
+    let results;
+    switch (type) {
+      case "ADD_TODO":
+        results = await addTodo(payload.title);
+        break;
+      case "UPDATE_TODO_STATUS":
+        results = await updateTodoStatus(payload.id, payload.status);
+        break;
+      case "SYNC_WITH_BACKEND":
+        results = await syncWithBackend();
+        break;
+      default:
+        throw new Error(`Unkown message type: ${type}`);
+    }
+    self.postMessage({ type: "SUCCESS", payload: results });
+  } catch (error: any) {
+    self.postMessage({ type: "ERROR", payload: error.message });
+  }
+};
