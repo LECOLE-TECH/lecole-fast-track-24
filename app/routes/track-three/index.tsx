@@ -34,10 +34,10 @@ export default function TrackThree() {
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [worker, setWorker] = useState<Worker | null>(null);
 
-  console.log(
-    `SharedArrayBuffer co ko: ${typeof SharedArrayBuffer !== "undefined"}`
-  ); // Should log "true"
-  console.log(`Worker co ko: ${typeof Worker !== "undefined"}`);
+  // console.log(
+  //   `SharedArrayBuffer co ko: ${typeof SharedArrayBuffer !== "undefined"}`
+  // ); // Should log "true"
+  // console.log(`Worker co ko: ${typeof Worker !== "undefined"}`);
 
   //Initialize local database
   useEffect(() => {
