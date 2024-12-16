@@ -41,16 +41,29 @@ export default function TrackThree() {
 
   //Initialize local database
   useEffect(() => {
-    if (typeof Worker !== "undefined") {
-      const newWorker = new Worker(new URL("worker.ts", import.meta.url), {
-        type: "module",
-      });
-      setWorker(newWorker);
+    const init = async () => {
+      if (typeof Worker !== "undefined") {
+        const newWorker = new Worker(new URL("worker.ts", import.meta.url), {
+          type: "module",
+        });
+        setWorker(newWorker);
 
-      return () => {
-        newWorker.terminate();
-      };
-    }
+        const messageHandler = (event: MessageEvent) => {
+          if (event.data.type === "INIT_COMPLETE") {
+            setTodos(event.data.payload);
+            newWorker.removeEventListener("message", messageHandler);
+          }
+        };
+
+        newWorker.addEventListener("message", messageHandler);
+
+        return () => {
+          newWorker.terminate();
+        };
+      }
+    };
+
+    init();
   }, []);
 
   //Send message to worker

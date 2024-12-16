@@ -4,10 +4,10 @@ import type { Todo, TodoLocal } from "~/types/todos";
 
 let db: any = null;
 
-export const initializeSQLite = async () => {
+export const initializeSQLite = async (): Promise<TodoLocal[]> => {
   try {
     const sqlite3 = await sqlite3InitModule();
-    await start(sqlite3);
+    return await start(sqlite3);
   } catch (error) {
     console.log(error);
     throw new Error("Error while initializing SQLite");
@@ -32,7 +32,7 @@ const createTable = async (db: any): Promise<void> => {
   }
 };
 
-const start = async (sqlite3: any): Promise<void> => {
+const start = async (sqlite3: any): Promise<TodoLocal[]> => {
   db =
     "opfs" in sqlite3
       ? new sqlite3.oo1.OpfsDb("/local-todos.sqlite3")
@@ -44,7 +44,7 @@ const start = async (sqlite3: any): Promise<void> => {
   );
 
   await createTable(db);
-  await loadLocalData();
+  return await loadLocalData();
 };
 
 export const loadLocalData = async (): Promise<TodoLocal[]> => {
@@ -196,7 +196,16 @@ export const syncWithBackend = async (): Promise<TodoLocal[]> => {
   }
 };
 
-initializeSQLite();
+let initialData: TodoLocal[] = [];
+
+initializeSQLite()
+  .then((data) => {
+    initialData = data;
+    self.postMessage({ type: "INIT_COMPLETE", payload: data });
+  })
+  .catch((error) => {
+    self.postMessage({ type: "ERROR", payload: error.message });
+  });
 
 self.onmessage = async (event) => {
   const { type, payload } = event.data;
