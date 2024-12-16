@@ -197,8 +197,6 @@ export default function TrackThree() {
             <Button onClick={syncWithBackend}>Sync Now</Button>
           </div>
 
-          {error && <div className='text-red-500 mb-4'>Error: {error}</div>}
-
           {/* Add todo input */}
           <div className='flex gap-2 mb-4'>
             <input

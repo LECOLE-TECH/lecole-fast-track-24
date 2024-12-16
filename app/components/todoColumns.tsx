@@ -36,10 +36,9 @@ const TodoColumn: React.FC<TodoColumnProps> = React.memo(
     return (
       <div
         ref={drop}
-        className={`border rounded-lg p-4 relative bg-gray-50 ${
+        className={`border rounded-lg p-4 relative ${
           isActive ? "bg-blue-100" : canDrop ? "bg-blue-50" : ""
         }`}
-        style={{ height: "600px", overflowY: "auto" }}
       >
         <h2 className='font-bold mb-4'>{title}</h2>
         <div className='space-y-2'>
