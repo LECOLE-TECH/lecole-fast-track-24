@@ -10,12 +10,3 @@ export interface TodoLocal extends Todo {
   position?: { x: number; y: number };
 }
 
-export interface TodoUpdate {
-  id: number;
-  status: Todo["status"];
-}
-
-export interface NewTodo {
-  title: string;
-  status: Todo["status"];
-}
