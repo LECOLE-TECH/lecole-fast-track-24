@@ -1,262 +1,230 @@
 import type { Route } from "../track-three/+types";
 import { Button } from "~/components/ui/button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { Todo, TodoLocal } from "~/types/todos";
+import TodoColumn from "~/components/todoColumns";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import socket from "~/utils/socket";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-interface Todo {
-  id: number;
-  title: string;
-  status: "backlog" | "in_progress" | "done";
-  synced: boolean;
-  created_at: string;
-}
+const columns: { id: Todo["status"]; title: string }[] = [
+  { id: "backlog", title: "Backlog" },
+  { id: "in_progress", title: "In Progress" },
+  { id: "done", title: "Done" },
+];
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Track Three" }];
 }
 
+export function headers(_: Route.HeadersArgs) {
+  return {
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Embedder-Policy": "require-corp",
+  };
+}
+
 export default function TrackThree() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<TodoLocal[]>([]);
   const [error, setError] = useState<string>("");
-  const [localDb, setLocalDb] = useState<any>(null);
   const [newTodoTitle, setNewTodoTitle] = useState("");
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [worker, setWorker] = useState<Worker | null>(null);
 
-  // Initialize local SQLite database
+  // console.log(
+  //   `SharedArrayBuffer co ko: ${typeof SharedArrayBuffer !== "undefined"}`
+  // ); // Should log "true"
+  // console.log(`Worker co ko: ${typeof Worker !== "undefined"}`);
+
+  //Initialize local database
   useEffect(() => {
-    const initLocalDb = async () => {
-      try {
-        const sqlite3InitModule = (await import("@sqlite.org/sqlite-wasm")).default;
-        const sqlite3 = await sqlite3InitModule();
-        const db = new sqlite3.oo1.DB("/local-todos.sqlite3", "ct");
+    const init = async () => {
+      if (typeof Worker !== "undefined") {
+        const newWorker = new Worker(new URL("worker.ts", import.meta.url), {
+          type: "module",
+        });
+        setWorker(newWorker);
 
-        // Create local todos table
-        db.exec(`
-          CREATE TABLE IF NOT EXISTS todos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            status TEXT CHECK(status IN ('backlog', 'in_progress', 'done')) NOT NULL DEFAULT 'backlog',
-            synced INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-          )
-        `);
+        const messageHandler = (event: MessageEvent) => {
+          if (event.data.type === "INIT_COMPLETE") {
+            setTodos(event.data.payload);
+            newWorker.removeEventListener("message", messageHandler);
+          }
+        };
 
-        setLocalDb(db);
-        loadLocalData(db);
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Failed to initialize local database");
+        newWorker.addEventListener("message", messageHandler);
+
+        return () => {
+          newWorker.terminate();
+        };
       }
     };
 
-    if (typeof window !== "undefined") {
-      initLocalDb();
+    init();
+  }, []);
+
+  //Send message to worker
+  const sendWorkerMessage = useCallback(
+    (type: string, payload?: any): Promise<TodoLocal[] | any> => {
+      return new Promise((resolve, reject) => {
+        if (!worker) {
+          reject(new Error("Worker not initialized"));
+          return;
+        }
+
+        const messageHandler = (event: MessageEvent) => {
+          worker.removeEventListener("message", messageHandler);
+          if (event.data.type === "SUCCESS") {
+            resolve(event.data.payload);
+          } else {
+            reject(new Error(event.data.payload));
+          }
+        };
+
+        worker.addEventListener("message", messageHandler);
+        worker.postMessage({ type, payload });
+      });
+    },
+    [worker]
+  );
+
+  useEffect(() => {
+    socket.on("user-connect-server", async (data) => {
+      toast.success(data.message);
+      setIsSocketConnected(true);
+      await syncWithBackend();
+    });
+
+    socket.on("disconnect", () => {
+      setIsSocketConnected(false);
+    });
+
+    if (!isSocketConnected) {
+      toast.warning("Disconnected Server");
     }
 
     return () => {
-      if (localDb) {
-        localDb.close();
-      }
+      socket.off("user-connect-server");
     };
-  }, []);
+  }, [isSocketConnected]);
 
-  const loadLocalData = (db: any) => {
-    const results: Todo[] = [];
-    db.exec({
-      sql: "SELECT id, title, status, synced, created_at FROM todos ORDER BY created_at DESC",
-      callback: (row: any) => {
-        results.push({
-          id: row[0],
-          title: row[1],
-          status: row[2],
-          synced: Boolean(row[3]),
-          created_at: row[4]
-        });
-      }
-    });
-    setTodos(results);
-  };
-
-  const addTodo = () => {
+  const addTodo = useCallback(async () => {
     if (!newTodoTitle.trim()) return;
 
     try {
-      localDb.exec({
-        sql: "INSERT INTO todos (title, synced) VALUES (?, 0)",
-        bind: [newTodoTitle]
+      const todosLocal = await sendWorkerMessage("ADD_TODO", {
+        title: newTodoTitle.trim(),
       });
+      setTodos(todosLocal);
       setNewTodoTitle("");
-      loadLocalData(localDb);
     } catch (err: any) {
-      setError("Failed to add todo");
+      setError(err.message || "Failed to add todo");
     }
-  };
+  }, [newTodoTitle, sendWorkerMessage]);
 
-  const updateTodoStatus = (todoId: number, newStatus: Todo["status"]) => {
-    try {
-      localDb.exec({
-        sql: "UPDATE todos SET status = ?, synced = 0 WHERE id = ?",
-        bind: [newStatus, todoId]
-      });
-      loadLocalData(localDb);
-    } catch (err: any) {
-      setError("Failed to update todo status");
-    }
-  };
-
-  const syncWithBackend = async () => {
-    try {
-      // Get all unsynced todos
-      const unsyncedTodos: Partial<Todo>[] = [];
-      localDb.exec({
-        sql: "SELECT id, title, status FROM todos WHERE synced = 0",
-        callback: (row: any) => {
-          unsyncedTodos.push({
-            id: row[0],
-            title: row[1],
-            status: row[2]
-          } as const);
-        }
-      });
-
-      // Send unsynced todos to backend
-      const response = await fetch("http://localhost:3000/api/todos/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ todos: unsyncedTodos })
-      });
-
-      if (!response.ok) throw new Error("Sync failed");
-
-      // Get updated todos from backend
-      const serverTodos = await response.json();
-
-      // Update local database with server data
-      localDb.exec("BEGIN TRANSACTION");
-
-      // Mark all existing todos as synced
-      localDb.exec("UPDATE todos SET synced = 1");
-
-      // Update or insert server todos
-      serverTodos.forEach((todo: Todo) => {
-        // Check if todo exists
-        let exists = false;
-        localDb.exec({
-          sql: "SELECT COUNT(*) as count FROM todos WHERE id = ?",
-          bind: [todo.id],
-          callback: (row: any) => {
-            exists = row[0] > 0;
-          }
+  const updateTodoStatus = useCallback(
+    async (todoId: number, newStatus: Todo["status"]) => {
+      try {
+        const todosLocal = await sendWorkerMessage("UPDATE_TODO_STATUS", {
+          id: todoId,
+          status: newStatus,
         });
+        setTodos(todosLocal);
+      } catch (error: any) {
+        setError(error.message || "Failed to update todo status");
+      }
+    },
+    [sendWorkerMessage]
+  );
 
-        if (exists) {
-          // Update existing todo
-          localDb.exec({
-            sql: "UPDATE todos SET title = ?, status = ?, synced = 1 WHERE id = ?",
-            bind: [todo.title, todo.status, todo.id]
-          });
-        } else {
-          // Insert new todo
-          localDb.exec({
-            sql: "INSERT INTO todos (id, title, status, synced) VALUES (?, ?, ?, 1)",
-            bind: [todo.id, todo.title, todo.status]
-          });
-        }
-      });
+  const deleteTodo = useCallback(
+    async (todoId: number) => {
+      try {
+        const todosLocal = await sendWorkerMessage("DELETE_TODO", {
+          id: todoId,
+        });
+        setTodos(todosLocal);
+      } catch (error: any) {
+        setError(error.message || "Failed to delete todo");
+      }
+    },
+    [sendWorkerMessage]
+  );
 
-      localDb.exec("COMMIT");
-
-      // Reload local data
-      loadLocalData(localDb);
+  const syncWithBackend = useCallback(async () => {
+    try {
+      const syncedTodos = await sendWorkerMessage("SYNC_WITH_BACKEND");
+      setTodos(syncedTodos);
+      toast.success("Synced with backend successfully");
     } catch (err: any) {
-      setError("Failed to sync with backend: " + err.message);
-      console.error(err);
+      setError(err.message || "Failed to sync with backend");
+      toast.error("Failed to sync with backend");
     }
-  };
+  }, [sendWorkerMessage]);
 
   // Auto-sync every 15 seconds
   useEffect(() => {
-    if (!localDb) return;
+    if (!isSocketConnected) return;
     const interval = setInterval(syncWithBackend, 15000);
     return () => clearInterval(interval);
-  }, [localDb]);
+  }, [isSocketConnected]);
 
-  const filterTodosByStatus = (status: Todo["status"]) => {
-    return todos.filter((todo) => todo.status === status);
+  const handleAddTodo = async () => {
+    if (newTodoTitle != "") {
+      await addTodo();
+      setNewTodoTitle("");
+    } else {
+      toast.error("Please enter todo title");
+    }
   };
 
   return (
-    <div className="flex flex-col p-8 gap-4 min-h-screen">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Todo App</h1>
-        <Button onClick={syncWithBackend}>Sync Now</Button>
-      </div>
+    <>
+      <DndProvider backend={HTML5Backend}>
+        <div className='flex flex-col p-8 gap-4 min-h-screen'>
+          <div className='flex justify-between items-center'>
+            <h1 className='text-2xl font-bold'>Todo App</h1>
+            <div
+              className={`px-2 py-1 rounded ${
+                isSocketConnected ? "bg-green-500" : "bg-red-500"
+              }`}
+            >
+              {isSocketConnected ? "Online" : "Offline"}
+            </div>
+            <Button onClick={syncWithBackend}>Sync Now</Button>
+          </div>
 
-      {error && <div className="text-red-500 mb-4">Error: {error}</div>}
+          {/* Add todo input */}
+          <div className='flex gap-2 mb-4'>
+            <input
+              type='text'
+              value={newTodoTitle}
+              onChange={(e) => setNewTodoTitle(e.target.value)}
+              className='flex-1 px-3 py-2 border rounded bg-white'
+              placeholder='Add new todo...'
+            />
+            <Button onClick={handleAddTodo}>Add Todo</Button>
+          </div>
 
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={newTodoTitle}
-          onChange={(e) => setNewTodoTitle(e.target.value)}
-          className="flex-1 px-3 py-2 border rounded"
-          placeholder="Add new todo..."
-        />
-        <Button onClick={addTodo}>Add Todo</Button>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div className="border rounded-lg p-4">
-          <h2 className="font-bold mb-4">Backlog</h2>
-          <div className="space-y-2">
-            {filterTodosByStatus("backlog").map((todo) => (
-              <div key={todo.id} className={`p-3 rounded-lg border ${todo.synced ? "bg-green-100" : "bg-yellow-100"}`}>
-                <p>{todo.title}</p>
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "in_progress")}>
-                    Move to Progress
-                  </Button>
-                </div>
-              </div>
+          {/* Todos Columns */}
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            {columns.map((column) => (
+              <TodoColumn
+                key={column.id}
+                id={column.id} // backlog | in_progres | done
+                title={column.title}
+                todos={todos.filter((todo) => todo.status === column.id)}
+                updateTodoStatus={updateTodoStatus}
+                deleteTodo={deleteTodo}
+              />
             ))}
           </div>
         </div>
-
-        <div className="border rounded-lg p-4">
-          <h2 className="font-bold mb-4">In Progress</h2>
-          <div className="space-y-2">
-            {filterTodosByStatus("in_progress").map((todo) => (
-              <div key={todo.id} className={`p-3 rounded-lg border ${todo.synced ? "bg-green-100" : "bg-yellow-100"}`}>
-                <p>{todo.title}</p>
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "backlog")}>
-                    Move to Backlog
-                  </Button>
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "done")}>
-                    Move to Done
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="border rounded-lg p-4">
-          <h2 className="font-bold mb-4">Done</h2>
-          <div className="space-y-2">
-            {filterTodosByStatus("done").map((todo) => (
-              <div key={todo.id} className={`p-3 rounded-lg border ${todo.synced ? "bg-green-100" : "bg-yellow-100"}`}>
-                <p>{todo.title}</p>
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => updateTodoStatus(todo.id, "in_progress")}>
-                    Move to Progress
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+      </DndProvider>
+      <ToastContainer />
+    </>
   );
 }

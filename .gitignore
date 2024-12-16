@@ -6,3 +6,4 @@
 /build/
 
 database/
+.env

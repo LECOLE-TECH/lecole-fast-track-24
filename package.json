@@ -13,19 +13,28 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@react-router/node": "^7.0.2",
     "@react-router/serve": "^7.0.2",
-    "@sqlite.org/sqlite-wasm": "^3.47.1-build1",
+    "@sqlite.org/sqlite-wasm": "^3.47.2-build1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "express": "^4.21.2",
+    "formik": "^2.4.6",
+    "framer-motion": "^11.14.1",
     "isbot": "^5.1.17",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
+    "react-draggable": "^4.4.6",
     "react-router": "^7.0.2",
+    "react-toastify": "^10.0.6",
     "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "sqlite3": "^5.1.7",
     "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "yup": "^1.5.0",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@react-router/dev": "^7.0.2",
@@ -40,5 +49,6 @@
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "vite-tsconfig-paths": "^5.1.2"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
