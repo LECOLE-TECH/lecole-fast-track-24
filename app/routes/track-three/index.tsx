@@ -20,6 +20,13 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Track Three" }];
 }
 
+export function headers(_: Route.HeadersArgs) {
+  return {
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Embedder-Policy": "require-corp",
+  };
+}
+
 export default function TrackThree() {
   const [todos, setTodos] = useState<TodoLocal[]>([]);
   const [error, setError] = useState<string>("");
