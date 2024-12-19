@@ -1,8 +1,6 @@
 # Track Tree
 
 - **Read Source Code & Research**: Study the source code and research libraries before coding.
-- **Set Up dnd-kit library**: Initialize and configure a global state using Zustand.
-- **Set Up Server Socket**: Establish a server socket connection.
 - **Set Up Database Table**: Create and configure the necessary database tables.
 
 - **Create a drag-and-drop dnd-kit**
