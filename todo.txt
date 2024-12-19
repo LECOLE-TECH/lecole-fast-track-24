@@ -1,0 +1,37 @@
+Track 1
+
+Day 1:
+  - Reading source code and research library before code
+  - Set up axios an React query call API
+  - Set up base server to prepare for next track to easy
+  - Handle CURD product:
+    Get list product, pagination product, search product: Done both API and UI/UX
+    Delete product: Done API and already set up UI/UX but not ready call API
+    Update product: Done API and not have UI
+    Create product: Done API and not have UI
+  - Handle lazy loading image, user double click, debound user fast search, medium reponsive, spliting loading
+
+Day 2:
+  - UI CRUD product
+
+Day 3:
+  - Done CRUD Product
+  - Implement fuzzy search using fuzzysort library
+  - Optimize render table using React.memo
+  - Validation input in Frontend and Backend using zod library
+  - Responsive
+
+Track 2
+
+Day 4:
+  - Reading source code and research library before code
+  - Set up zustand global state
+  - Set up server socket
+  - set up table for databse
+
+Day 5:
+  - Implement requirement CRUD user
+    Update user by socket: secure implement crytography data prevent other people listen
+  - Implement Socket auth
+  - Authentication and authorization using jwt
+  - Optimization code and prevent unnecessary rendering
