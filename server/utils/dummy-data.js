@@ -99,3 +99,16 @@ export const insertUsersDummy = (db) => {
     })
   })
 }
+
+export const generateTodosTable = (db) => {
+  db.serialize(() => {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS todos (
+        id INTEGER PRIMARY KEY,
+        title TEXT NOT NULL,
+        status TEXT NOT NULL,
+        synced INTEGER DEFAULT 0
+      )
+    `)
+  })
+}

@@ -1,3 +1,5 @@
+import { Todo } from "~/types/interface"
+
 export const interceptorLoadingElement = (calling: boolean) => {
   const elements = document.querySelectorAll<HTMLElement>(
     ".interceptor-loading"
@@ -11,4 +13,14 @@ export const interceptorLoadingElement = (calling: boolean) => {
       elements[i].style.pointerEvents = "initial"
     }
   }
+}
+
+export const generatePlaceHolderCard = () => {
+  return {
+    id: Math.floor(Math.random() * 100000),
+    title: "",
+    status: "backlog",
+    synced: false,
+    created_at: new Date().toISOString()
+  } as Todo
 }

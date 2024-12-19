@@ -20,3 +20,17 @@ export enum ActionDialog {
   LOGIN = 2,
   CHANGE_SECRET = 3
 }
+
+export enum TodoStatus {
+  BACKLOG = "backlog",
+  IN_PROGRESS = "progress",
+  DONE = "done"
+}
+
+export interface Todo {
+  id: number
+  title: string
+  status: TodoStatus
+  synced: boolean
+  created_at: string
+}

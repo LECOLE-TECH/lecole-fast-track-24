@@ -1,5 +1,5 @@
 import { Box } from "lucide-react"
-import { useNavigate, useSearchParams } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 
 import {
   Sidebar,
@@ -17,7 +17,7 @@ import { TRACK_ONE_CONSTANTS } from "~/utils/constant"
 const items = [
   {
     title: "Products",
-    url: `track-one?tab=${TRACK_ONE_CONSTANTS.PRODUCT_TAB}`,
+    url: `/track-one?tab=${TRACK_ONE_CONSTANTS.PRODUCT_TAB}`,
     icon: Box
   }
 ]
@@ -43,10 +43,10 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive}>
-                      <a href={item.url}>
+                      <Link to={item.url}>
                         <item.icon />
                         <span>{item.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
